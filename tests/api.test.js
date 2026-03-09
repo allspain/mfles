@@ -67,6 +67,7 @@ describe('setFormation', () => {
   test('POSTs formation with auth header and JSON body', async () => {
     fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     const formation = { id: 4300143, type: '4-3-3_attack', positions: [{ index: 0, playerId: 1, captain: false }] };
+    const { id: _id, ...expectedBody } = formation; // id is stripped from POST body
     await setFormation(CLUB_ID, SQUAD_ID, formation, TOKEN);
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining(`/clubs/${CLUB_ID}/squads/${SQUAD_ID}/formation`),
@@ -76,7 +77,7 @@ describe('setFormation', () => {
           Authorization: TOKEN,
           'Content-Type': 'application/json',
         }),
-        body: JSON.stringify(formation),
+        body: JSON.stringify(expectedBody),
       })
     );
   });

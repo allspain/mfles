@@ -13,7 +13,9 @@ async function apiFetch(path, token, options = {}) {
     headers,
   });
   if (!response.ok) {
-    throw new Error(`MFL API error ${response.status} for ${path}`);
+    let detail = '';
+    try { detail = await response.text(); } catch (_) {}
+    throw new Error(`MFL API error ${response.status} for ${path}${detail ? ': ' + detail : ''}`);
   }
   return response.json();
 }
@@ -34,10 +36,12 @@ async function fetchFormation(clubId, squadId, token) {
 }
 
 // Save new formation (requires auth)
+// Strip `id` from body — it's in the URL and some APIs reject it in the body
 async function setFormation(clubId, squadId, formation, token) {
+  const { id: _id, ...body } = formation;
   return apiFetch(`/clubs/${clubId}/squads/${squadId}/formation`, token, {
     method: 'POST',
-    body: JSON.stringify(formation),
+    body: JSON.stringify(body),
   });
 }
 
