@@ -1,7 +1,7 @@
 // background.js
 // Service worker for MFL Enhancement Suite
 
-importScripts('src/scorer.js', 'src/optimizer.js', 'src/api.js', 'src/tactics.js');
+importScripts('src/scorer.js', 'src/positions.js', 'src/optimizer.js', 'src/api.js', 'src/tactics.js');
 
 // ── Message handler ──────────────────────────────────────────────────
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -40,19 +40,16 @@ async function handleOptimize(clubId) {
       fetchFormation(clubId, squadId, mflToken),
     ]);
 
-    // Build set of starting XI player IDs (indices 0-10 in formation.positions)
+    // Normalize players for the optimizer
     const startingXIIds = new Set((formation.positions || []).map(p => p.playerId));
 
-    // Normalize players for the optimizer
-    // energy is 0-10000; convert to 0-100
     const squad = players.map(player => ({
       id: player.id,
-      ovr: player.metadata.overall,
-      energy: player.energy / 100,
-      positions: player.metadata.positions || [],
-      // Use primary position for optimizer matching
+      energy: player.energy / 100,          // 0-10000 → 0-100
       position: (player.metadata.positions || [])[0] || 'UNKNOWN',
+      positions: player.metadata.positions || [],
       name: `${player.metadata.firstName} ${player.metadata.lastName}`.trim(),
+      playerObj: player,                     // full object for ovrAtPosition()
       inStartingXI: startingXIIds.has(player.id),
     }));
 
