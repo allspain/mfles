@@ -109,6 +109,6 @@ describe('optimizeLineup', () => {
   });
 
   test('returns empty result for non-array input', () => {
-    expect(optimizeLineup(null)).toEqual({ swaps: [], warnings: [] });
+    expect(optimizeLineup(null)).toEqual({ swaps: [], warnings: [], decisions: [] });
   });
 });

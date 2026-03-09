@@ -67,18 +67,18 @@ describe('setFormation', () => {
   test('POSTs formation with auth header and JSON body', async () => {
     fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     const formation = { id: 4300143, type: '4-3-3_attack', positions: [{ index: 0, playerId: 1, captain: false }] };
-    const { id: _id, ...expectedBody } = formation; // id is stripped from POST body
     await setFormation(CLUB_ID, SQUAD_ID, formation, TOKEN);
-    expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining(`/clubs/${CLUB_ID}/squads/${SQUAD_ID}/formation`),
-      expect.objectContaining({
-        method: 'POST',
-        headers: expect.objectContaining({
-          Authorization: TOKEN,
-          'Content-Type': 'application/json',
-        }),
-        body: JSON.stringify(expectedBody),
-      })
-    );
+    const [, options] = fetch.mock.calls[0];
+    const body = JSON.parse(options.body);
+    // id stripped, type renamed, tactical nulls defaulted to 1.0
+    expect(body.id).toBeUndefined();
+    expect(body.type).toBeUndefined();
+    expect(body.formationType).toBe('4-3-3_attack');
+    expect(body.positions).toEqual(formation.positions);
+    // null tactical fields are omitted; absent fields also omitted
+    expect(body.depth).toBeUndefined();
+    expect(body.compactness).toBeUndefined();
+    expect(options.method).toBe('POST');
+    expect(options.headers).toMatchObject({ Authorization: TOKEN, 'Content-Type': 'application/json' });
   });
 });

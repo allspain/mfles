@@ -35,10 +35,27 @@ async function fetchFormation(clubId, squadId, token) {
   return apiFetch(`/clubs/${clubId}/squads/${squadId}/formation`, token);
 }
 
+// Tactical slider fields — omit when null, coerce to number when set
+const TACTICAL_FIELDS = new Set([
+  'depth', 'compactness', 'pressing', 'clearance', 'aggressivity',
+  'width', 'directness', 'sideAttackLeft', 'dribble', 'farShot',
+  'crosses', 'riskPass', 'fluidity', 'offensiveEngagement',
+]);
+
 // Save new formation (requires auth)
-// Strip `id` from body — it's in the URL and some APIs reject it in the body
+// Strip `id` (in URL), rename `type` → `formationType`
+// Omit null tactical fields; coerce non-null tactical fields to numbers
 async function setFormation(clubId, squadId, formation, token) {
-  const { id: _id, ...body } = formation;
+  const { id: _id, type, ...rest } = formation;
+  const body = { formationType: type };
+  for (const [key, val] of Object.entries(rest)) {
+    if (val === null) continue; // omit all null fields
+    if (TACTICAL_FIELDS.has(key)) {
+      body[key] = Number.isFinite(Number(val)) ? Number(val) : 1.0;
+    } else {
+      body[key] = val;
+    }
+  }
   return apiFetch(`/clubs/${clubId}/squads/${squadId}/formation`, token, {
     method: 'POST',
     body: JSON.stringify(body),

@@ -21,10 +21,11 @@ const LOW_ENERGY_THRESHOLD = 60;
  * @returns {{ swaps: Array, warnings: Array }}
  */
 function optimizeLineup(squad) {
-  if (!Array.isArray(squad)) return { swaps: [], warnings: [] };
+  if (!Array.isArray(squad)) return { swaps: [], warnings: [], decisions: [] };
 
   const swaps = [];
   const warnings = [];
+  const decisions = [];
   const starters = squad.filter(p => p.inStartingXI);
   const bench = squad.filter(p => !p.inStartingXI);
   const usedBenchIds = new Set();
@@ -37,13 +38,13 @@ function optimizeLineup(squad) {
       warnings.push({ playerId: starter.id, type: 'LOW_ENERGY', energy: starter.energy });
     }
 
-    // Find bench players who can play the starter's position
-    // "Can play" = any of their listed positions matches, OR familiarity lookup exists
     const eligible = bench.filter(p => !usedBenchIds.has(p.id));
 
-    if (eligible.length === 0) continue;
+    if (eligible.length === 0) {
+      decisions.push({ starter: starter.name, position: starter.position, starterOvr, starterScore: +starterScore.toFixed(2), starterEnergy: starter.energy, reason: 'no bench available', swapped: false });
+      continue;
+    }
 
-    // Score each bench player at the starter's target position
     const scored = eligible.map(p => ({
       player: p,
       ovr: _ovrAtPosition(p.playerObj, starter.position),
@@ -58,10 +59,13 @@ function optimizeLineup(squad) {
         in:  { id: best.player.id, name: best.player.name, ovr: best.ovr, energy: best.player.energy, score: best.score, position: starter.position },
       });
       usedBenchIds.add(best.player.id);
+      decisions.push({ starter: starter.name, position: starter.position, starterOvr, starterScore: +starterScore.toFixed(2), starterEnergy: starter.energy, inPlayer: best.player.name, inOvr: best.ovr, inScore: +best.score.toFixed(2), inEnergy: best.player.energy, reason: 'swap', swapped: true });
+    } else {
+      decisions.push({ starter: starter.name, position: starter.position, starterOvr, starterScore: +starterScore.toFixed(2), starterEnergy: starter.energy, inPlayer: best.player.name, inOvr: best.ovr, inScore: +best.score.toFixed(2), inEnergy: best.player.energy, reason: 'starter wins', swapped: false });
     }
   }
 
-  return { swaps, warnings };
+  return { swaps, warnings, decisions };
 }
 
 if (typeof module !== 'undefined' && module.exports) {

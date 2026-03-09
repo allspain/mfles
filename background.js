@@ -53,7 +53,20 @@ async function handleOptimize(clubId) {
       inStartingXI: startingXIIds.has(player.id),
     }));
 
-    const { swaps, warnings } = optimizeLineup(squad);
+    const { swaps, warnings, decisions } = optimizeLineup(squad);
+    console.log('[MFLES] Lineup analysis:');
+    console.table(decisions.map(d => ({
+      'Starter': d.starter,
+      'Pos': d.position,
+      'S.OVR': d.starterOvr,
+      'S.Nrg': d.starterEnergy + '%',
+      'S.Score': d.starterScore,
+      'Best Bench': d.inPlayer || '-',
+      'B.OVR': d.inOvr ?? '-',
+      'B.Nrg': d.inEnergy != null ? d.inEnergy + '%' : '-',
+      'B.Score': d.inScore ?? '-',
+      'Result': d.swapped ? '✓ SWAP' : d.reason,
+    })));
 
     if (swaps.length === 0) {
       return { success: true, swaps: [], warnings, message: 'Already optimal' };
