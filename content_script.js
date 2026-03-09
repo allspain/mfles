@@ -58,14 +58,9 @@ function injectOptimizeButton() {
   panel.id = 'mfl-panel';
   panel.className = 'mfl-panel mfl-hidden';
 
-  // Inject at the top of the tactics page.
-  // Selector tries the main content area first, falls back to body.
-  const target =
-    document.querySelector('[class*="tactics"]') ||
-    document.querySelector('main') ||
-    document.body;
-  target.prepend(panel);
-  target.prepend(button);
+  // Use fixed positioning so React rerenders can't remove or bury the button.
+  document.body.appendChild(button);
+  document.body.appendChild(panel);
 
   button.addEventListener('click', async () => {
     const clubId = getClubIdFromUrl();
@@ -159,13 +154,18 @@ if (onTacticsPage()) {
   injectOptimizeButton();
 }
 
-// Handle SPA navigation: React changes the URL without a full page reload
+// Handle SPA navigation and button removal (React rerenders can detach body children)
 let lastUrl = location.href;
 new MutationObserver(() => {
+  // Reinject on URL change
   if (location.href !== lastUrl) {
     lastUrl = location.href;
     if (onTacticsPage()) {
       setTimeout(injectOptimizeButton, 500);
     }
+  }
+  // Reinject if button was removed while still on tactics page
+  if (onTacticsPage() && !document.getElementById('mfl-optimize-btn')) {
+    injectOptimizeButton();
   }
 }).observe(document, { subtree: true, childList: true });
