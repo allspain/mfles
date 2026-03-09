@@ -10,6 +10,10 @@
  * @returns {number} effective score
  */
 function effectiveScore(ovr, energy) {
+  if (!Number.isFinite(ovr) || !Number.isFinite(energy)) {
+    return 0;
+  }
+  energy = Math.min(100, Math.max(0, energy));
   if (energy <= 92) {
     return (energy / 100) * ovr;
   }

@@ -28,3 +28,18 @@ describe('effectiveScore', () => {
     expect(effectiveScore(85, 80)).toBeGreaterThan(effectiveScore(75, 80));
   });
 });
+
+describe('effectiveScore — input guards', () => {
+  test('energy above 100 is clamped to 100', () => {
+    expect(effectiveScore(75, 150)).toBeCloseTo(effectiveScore(75, 100), 2);
+  });
+
+  test('energy below 0 is clamped to 0', () => {
+    expect(effectiveScore(75, -10)).toBe(0);
+  });
+
+  test('NaN inputs return 0', () => {
+    expect(effectiveScore(NaN, 80)).toBe(0);
+    expect(effectiveScore(75, NaN)).toBe(0);
+  });
+});
