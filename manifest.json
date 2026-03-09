@@ -4,8 +4,7 @@
   "version": "0.1.0",
   "description": "Automates lineup optimization for MFL clubs",
   "permissions": [
-    "storage",
-    "cookies"
+    "storage"
   ],
   "host_permissions": [
     "https://*.playmfl.com/*"
