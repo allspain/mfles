@@ -1,11 +1,10 @@
 // src/api.js
 
-// TODO: Replace with confirmed base URL after network inspection (Task 2)
-const BASE_URL = 'https://api.playmfl.com';
+const BASE_URL = 'https://z519wdyajg.execute-api.us-east-1.amazonaws.com/prod';
 
 async function apiFetch(path, token, options = {}) {
   const headers = {
-    Authorization: token,
+    ...(token ? { Authorization: token } : {}),
     ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
     ...(options.headers || {}),
   };
@@ -19,30 +18,34 @@ async function apiFetch(path, token, options = {}) {
   return response.json();
 }
 
-async function fetchSquad(clubId, token) {
-  return apiFetch(`/clubs/${clubId}/squad`, token);
+// Get club info including squad IDs (no auth required)
+async function fetchClub(clubId) {
+  return apiFetch(`/clubs/${clubId}`, null);
 }
 
-async function fetchTactics(clubId, token) {
-  return apiFetch(`/clubs/${clubId}/tactics`, token);
+// Get all players for a club (no auth required)
+async function fetchPlayers(clubId) {
+  return apiFetch(`/clubs/${clubId}/players`, null);
 }
 
-async function setTactics(clubId, tactics, token) {
-  return apiFetch(`/clubs/${clubId}/tactics`, token, {
+// Get current formation (requires auth)
+async function fetchFormation(clubId, squadId, token) {
+  return apiFetch(`/clubs/${clubId}/squads/${squadId}/formation`, token);
+}
+
+// Save new formation (requires auth)
+async function setFormation(clubId, squadId, formation, token) {
+  return apiFetch(`/clubs/${clubId}/squads/${squadId}/formation`, token, {
     method: 'POST',
-    body: JSON.stringify(tactics),
+    body: JSON.stringify(formation),
   });
 }
 
-async function fetchClubs(token) {
-  return apiFetch('/users/me/clubs', token);
-}
-
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { fetchSquad, fetchTactics, setTactics, fetchClubs };
+  module.exports = { fetchClub, fetchPlayers, fetchFormation, setFormation };
 } else {
-  globalThis.fetchSquad = fetchSquad;
-  globalThis.fetchTactics = fetchTactics;
-  globalThis.setTactics = setTactics;
-  globalThis.fetchClubs = fetchClubs;
+  globalThis.fetchClub = fetchClub;
+  globalThis.fetchPlayers = fetchPlayers;
+  globalThis.fetchFormation = fetchFormation;
+  globalThis.setFormation = setFormation;
 }

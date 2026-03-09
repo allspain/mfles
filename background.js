@@ -27,39 +27,46 @@ async function handleOptimize(clubId) {
   }
 
   try {
-    const [squad, tactics] = await Promise.all([
-      fetchSquad(clubId, mflToken),
-      fetchTactics(clubId, mflToken),
+    // Step 1: get squad ID from club (no auth needed)
+    const club = await fetchClub(clubId);
+    const squadId = club.squads && club.squads[0] && club.squads[0].id;
+    if (!squadId) {
+      return { success: false, error: 'No squad found for this club.' };
+    }
+
+    // Step 2: fetch players and formation in parallel
+    const [players, formation] = await Promise.all([
+      fetchPlayers(clubId),
+      fetchFormation(clubId, squadId, mflToken),
     ]);
 
-    // Normalize squad: mark which players are in the starting XI
-    // Field names (id, ovr, energy, position, name) will be confirmed in Task 2
-    // and may need adjustment after network inspection
-    const startingXIIds = new Set(
-      (tactics.startingXI || []).map(p => (typeof p === 'object' ? p.id : p))
-    );
+    // Build set of starting XI player IDs (indices 0-10 in formation.positions)
+    const startingXIIds = new Set((formation.positions || []).map(p => p.playerId));
 
-    const normalizedSquad = squad.map(player => ({
+    // Normalize players for the optimizer
+    // energy is 0-10000; convert to 0-100
+    const squad = players.map(player => ({
       id: player.id,
-      ovr: player.ovr,
-      energy: player.energy,
-      position: player.position,
-      name: player.name || `${player.firstName || ''} ${player.lastName || ''}`.trim(),
+      ovr: player.metadata.overall,
+      energy: player.energy / 100,
+      positions: player.metadata.positions || [],
+      // Use primary position for optimizer matching
+      position: (player.metadata.positions || [])[0] || 'UNKNOWN',
+      name: `${player.metadata.firstName} ${player.metadata.lastName}`.trim(),
       inStartingXI: startingXIIds.has(player.id),
     }));
 
-    const { swaps, warnings } = optimizeLineup(normalizedSquad);
+    const { swaps, warnings } = optimizeLineup(squad);
 
     if (swaps.length === 0) {
       return { success: true, swaps: [], warnings, message: 'Already optimal' };
     }
 
-    const newTactics = applySwaps(tactics, swaps);
-    await setTactics(clubId, newTactics, mflToken);
+    const newFormation = applySwaps(formation, swaps);
+    await setFormation(clubId, squadId, newFormation, mflToken);
 
     return { success: true, swaps, warnings };
   } catch (err) {
     return { success: false, error: err.message };
   }
 }
-

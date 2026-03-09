@@ -1,30 +1,25 @@
 // src/tactics.js
 
 /**
- * Apply optimizer swaps to a tactics object.
- * Handles both object-form ({ id, ... }) and bare-string-ID form for startingXI entries.
- * Deep-clones the tactics object before mutating.
+ * Apply optimizer swaps to a formation object.
+ * The formation's `positions` array contains { index, playerId, captain } objects.
+ * Replaces the `playerId` of the `out` player with the `in` player's id.
  *
- * @param {Object} tactics - Raw tactics from MFL API (startingXI is array of objects or strings)
- * @param {Array} swaps - Array of { out: { id }, in: { id } } swap descriptors
- * @returns {Object} New tactics object with swaps applied
+ * @param {Object} formation - Raw formation from MFL API
+ * @param {Array} swaps - Array of { out: { id }, in: { id } }
+ * @returns {Object} New formation object with swaps applied
  */
-function applySwaps(tactics, swaps) {
-  const newTactics = JSON.parse(JSON.stringify(tactics));
+function applySwaps(formation, swaps) {
+  const newFormation = JSON.parse(JSON.stringify(formation));
   for (const swap of swaps) {
-    const idx = (newTactics.startingXI || []).findIndex(
-      p => (typeof p === 'object' ? p.id : p) === swap.out.id
-    );
-    if (idx === -1) {
-      console.warn('[MFLES] applySwaps: player', swap.out.id, 'not found in startingXI — skipping swap');
+    const slot = (newFormation.positions || []).find(p => p.playerId === swap.out.id);
+    if (!slot) {
+      console.warn('[MFLES] applySwaps: player', swap.out.id, 'not found in formation — skipping swap');
       continue;
     }
-    const original = newTactics.startingXI[idx];
-    newTactics.startingXI[idx] = typeof original === 'object'
-      ? { ...original, id: swap.in.id }
-      : swap.in.id;
+    slot.playerId = swap.in.id;
   }
-  return newTactics;
+  return newFormation;
 }
 
 if (typeof module !== 'undefined' && module.exports) {

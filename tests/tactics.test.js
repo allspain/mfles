@@ -2,51 +2,58 @@
 const { applySwaps } = require('../src/tactics');
 
 describe('applySwaps', () => {
-  test('swaps player in object-form startingXI', () => {
-    const tactics = {
-      formation: '4-3-3',
-      startingXI: [{ id: 'p1', pos: 'MID' }, { id: 'p2', pos: 'FWD' }],
+  test('replaces playerId in formation positions', () => {
+    const formation = {
+      type: '4-3-3_attack',
+      positions: [
+        { index: 0, playerId: 100, captain: false },
+        { index: 1, playerId: 200, captain: false },
+      ],
     };
-    const swaps = [{ out: { id: 'p1' }, in: { id: 'b1' } }];
-    const result = applySwaps(tactics, swaps);
-    expect(result.startingXI[0].id).toBe('b1');
-    expect(result.startingXI[0].pos).toBe('MID'); // preserves other fields
-    expect(result.startingXI[1].id).toBe('p2');   // untouched
+    const swaps = [{ out: { id: 100 }, in: { id: 999 } }];
+    const result = applySwaps(formation, swaps);
+    expect(result.positions[0].playerId).toBe(999);
+    expect(result.positions[1].playerId).toBe(200); // untouched
   });
 
-  test('swaps player in bare-string startingXI', () => {
-    const tactics = { startingXI: ['p1', 'p2', 'p3'] };
-    const swaps = [{ out: { id: 'p2' }, in: { id: 'b2' } }];
-    const result = applySwaps(tactics, swaps);
-    expect(result.startingXI).toEqual(['p1', 'b2', 'p3']);
+  test('preserves index and captain fields when swapping', () => {
+    const formation = {
+      positions: [{ index: 6, playerId: 143257, captain: true }],
+    };
+    const swaps = [{ out: { id: 143257 }, in: { id: 99999 } }];
+    const result = applySwaps(formation, swaps);
+    expect(result.positions[0].index).toBe(6);
+    expect(result.positions[0].captain).toBe(true);
+    expect(result.positions[0].playerId).toBe(99999);
   });
 
-  test('does not mutate the original tactics object', () => {
-    const tactics = { startingXI: ['p1'] };
-    const swaps = [{ out: { id: 'p1' }, in: { id: 'b1' } }];
-    applySwaps(tactics, swaps);
-    expect(tactics.startingXI[0]).toBe('p1'); // original unchanged
+  test('does not mutate the original formation', () => {
+    const formation = { positions: [{ index: 0, playerId: 100, captain: false }] };
+    applySwaps(formation, [{ out: { id: 100 }, in: { id: 999 } }]);
+    expect(formation.positions[0].playerId).toBe(100);
   });
 
-  test('skips swap and logs warning when out player not found', () => {
+  test('skips and warns when out player not in formation', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const tactics = { startingXI: ['p1', 'p2'] };
-    const swaps = [{ out: { id: 'MISSING' }, in: { id: 'b1' } }];
-    const result = applySwaps(tactics, swaps);
-    expect(result.startingXI).toEqual(['p1', 'p2']); // unchanged
-    expect(warnSpy).toHaveBeenCalledWith(
-      '[MFLES] applySwaps: player', 'MISSING', 'not found in startingXI — skipping swap'
-    );
+    const formation = { positions: [{ index: 0, playerId: 100, captain: false }] };
+    const result = applySwaps(formation, [{ out: { id: 999 }, in: { id: 888 } }]);
+    expect(result.positions[0].playerId).toBe(100);
+    expect(warnSpy).toHaveBeenCalledWith('[MFLES] applySwaps: player', 999, 'not found in formation — skipping swap');
     warnSpy.mockRestore();
   });
 
-  test('handles multiple swaps correctly', () => {
-    const tactics = { startingXI: ['p1', 'p2', 'p3'] };
-    const swaps = [
-      { out: { id: 'p1' }, in: { id: 'b1' } },
-      { out: { id: 'p3' }, in: { id: 'b3' } },
-    ];
-    const result = applySwaps(tactics, swaps);
-    expect(result.startingXI).toEqual(['b1', 'p2', 'b3']);
+  test('handles multiple swaps', () => {
+    const formation = {
+      positions: [
+        { index: 0, playerId: 1, captain: false },
+        { index: 1, playerId: 2, captain: false },
+        { index: 2, playerId: 3, captain: false },
+      ],
+    };
+    const result = applySwaps(formation, [
+      { out: { id: 1 }, in: { id: 10 } },
+      { out: { id: 3 }, in: { id: 30 } },
+    ]);
+    expect(result.positions.map(p => p.playerId)).toEqual([10, 2, 30]);
   });
 });
