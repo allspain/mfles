@@ -21,4 +21,9 @@ function effectiveScore(ovr, energy) {
   return excessMultiplier * ovr;
 }
 
-module.exports = { effectiveScore };
+// Support both Node (Jest) and browser service worker (importScripts)
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { effectiveScore };
+} else {
+  globalThis.effectiveScore = effectiveScore;
+}

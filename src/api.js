@@ -38,4 +38,11 @@ async function fetchClubs(token) {
   return apiFetch('/users/me/clubs', token);
 }
 
-module.exports = { fetchSquad, fetchTactics, setTactics, fetchClubs };
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { fetchSquad, fetchTactics, setTactics, fetchClubs };
+} else {
+  globalThis.fetchSquad = fetchSquad;
+  globalThis.fetchTactics = fetchTactics;
+  globalThis.setTactics = setTactics;
+  globalThis.fetchClubs = fetchClubs;
+}

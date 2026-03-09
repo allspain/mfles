@@ -1,5 +1,9 @@
 // src/optimizer.js
-const { effectiveScore } = require('./scorer');
+
+// Support both Node (Jest) and browser service worker
+const _effectiveScore = (typeof require !== 'undefined')
+  ? require('./scorer').effectiveScore
+  : globalThis.effectiveScore;
 
 const LOW_ENERGY_THRESHOLD = 60;
 
@@ -17,7 +21,7 @@ function optimizeLineup(squad) {
   const usedBenchIds = new Set();
 
   for (const starter of starters) {
-    const starterScore = effectiveScore(starter.ovr, starter.energy);
+    const starterScore = _effectiveScore(starter.ovr, starter.energy);
 
     if (starter.energy < LOW_ENERGY_THRESHOLD) {
       warnings.push({ playerId: starter.id, type: 'LOW_ENERGY', energy: starter.energy });
@@ -29,9 +33,9 @@ function optimizeLineup(squad) {
     if (eligible.length === 0) continue;
 
     const best = eligible.reduce((a, b) =>
-      effectiveScore(a.ovr, a.energy) > effectiveScore(b.ovr, b.energy) ? a : b
+      _effectiveScore(a.ovr, a.energy) > _effectiveScore(b.ovr, b.energy) ? a : b
     );
-    const bestScore = effectiveScore(best.ovr, best.energy);
+    const bestScore = _effectiveScore(best.ovr, best.energy);
 
     if (bestScore > starterScore) {
       swaps.push({
@@ -45,4 +49,8 @@ function optimizeLineup(squad) {
   return { swaps, warnings };
 }
 
-module.exports = { optimizeLineup };
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { optimizeLineup };
+} else {
+  globalThis.optimizeLineup = optimizeLineup;
+}
