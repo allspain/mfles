@@ -1,12 +1,14 @@
 // background.js
 // Service worker for MFL Enhancement Suite
 
-importScripts('src/scorer.js', 'src/optimizer.js', 'src/api.js');
+importScripts('src/scorer.js', 'src/optimizer.js', 'src/api.js', 'src/tactics.js');
 
 // ── Message handler ──────────────────────────────────────────────────
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'STORE_TOKEN') {
-    chrome.storage.session.set({ mflToken: message.token });
+    chrome.storage.session.set({ mflToken: message.token }).catch(err =>
+      console.error('[MFLES] Failed to store token:', err)
+    );
     return;
   }
 
@@ -61,21 +63,3 @@ async function handleOptimize(clubId) {
   }
 }
 
-// Apply optimizer swaps to the raw tactics object returned by the API.
-// Handles both { id } object form and bare string ID form for startingXI entries.
-function applySwaps(tactics, swaps) {
-  const newTactics = JSON.parse(JSON.stringify(tactics));
-  for (const swap of swaps) {
-    const idx = (newTactics.startingXI || []).findIndex(
-      p => (typeof p === 'object' ? p.id : p) === swap.out.id
-    );
-    if (idx !== -1) {
-      // Preserve the original entry's shape (object or string)
-      const original = newTactics.startingXI[idx];
-      newTactics.startingXI[idx] = typeof original === 'object'
-        ? { ...original, id: swap.in.id }
-        : swap.in.id;
-    }
-  }
-  return newTactics;
-}
