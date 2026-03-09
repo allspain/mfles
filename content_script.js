@@ -60,7 +60,6 @@ function injectOptimizeButton() {
 
   // Inject at the top of the tactics page.
   // Selector tries the main content area first, falls back to body.
-  // The exact selector may need updating after Task 2 (network inspection).
   const target =
     document.querySelector('[class*="tactics"]') ||
     document.querySelector('main') ||
