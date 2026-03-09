@@ -4,13 +4,14 @@
 const BASE_URL = 'https://api.playmfl.com';
 
 async function apiFetch(path, token, options = {}) {
+  const headers = {
+    Authorization: token,
+    ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+    ...(options.headers || {}),
+  };
   const response = await fetch(`${BASE_URL}${path}`, {
     ...options,
-    headers: {
-      Authorization: token,
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
+    headers,
   });
   if (!response.ok) {
     throw new Error(`MFL API error ${response.status} for ${path}`);
