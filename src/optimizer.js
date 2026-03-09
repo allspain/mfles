@@ -9,6 +9,7 @@ const LOW_ENERGY_THRESHOLD = 60;
  * @returns {{ swaps: Array, warnings: Array }}
  */
 function optimizeLineup(squad) {
+  if (!Array.isArray(squad)) return { swaps: [], warnings: [] };
   const swaps = [];
   const warnings = [];
   const starters = squad.filter(p => p.inStartingXI);

@@ -57,13 +57,29 @@ describe('optimizeLineup', () => {
 
   test('warns when starter energy below 60%', () => {
     const squad = [
-      player('s1', 80, 55, 'MID', true),  // below 60% — warn
-      player('b1', 79, 50, 'MID', false), // lower score, no swap
+      player('s1', 80, 55, 'MID', true),
+      player('b1', 79, 50, 'MID', false),
     ];
     const result = optimizeLineup(squad);
     expect(result.warnings).toContainEqual(
-      expect.objectContaining({ playerId: 's1', type: 'LOW_ENERGY' })
+      expect.objectContaining({ playerId: 's1', type: 'LOW_ENERGY', energy: 55 })
     );
+  });
+
+  test('returns empty result for non-array input', () => {
+    expect(optimizeLineup(null)).toEqual({ swaps: [], warnings: [] });
+    expect(optimizeLineup(undefined)).toEqual({ swaps: [], warnings: [] });
+    expect(optimizeLineup('bad')).toEqual({ swaps: [], warnings: [] });
+  });
+
+  test('does not swap when bench player scores equal to starter', () => {
+    // Both at same OVR and energy => equal scores => no swap
+    const squad = [
+      player('s1', 75, 80, 'MID', true),
+      player('b1', 75, 80, 'MID', false),
+    ];
+    const result = optimizeLineup(squad);
+    expect(result.swaps).toHaveLength(0);
   });
 
   test('swap result includes score for both out and in players', () => {
