@@ -1,35 +1,9 @@
 // content_script.js
+// Runs in ISOLATED world. fetch_interceptor.js (MAIN world) wraps window.fetch
+// and dispatches 'mfl_auth_token' events which this script forwards to background.js.
 
 // ── Auth token capture ──────────────────────────────────────────────
-// Inject a script into the page context to intercept fetch calls.
-// Content scripts run in an isolated world and cannot observe window.fetch,
-// so we inject a <script> tag to wrap it at the page level.
-const interceptor = document.createElement('script');
-interceptor.textContent = `
-  (function() {
-    const originalFetch = window.fetch;
-    window.fetch = function(...args) {
-      const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || '';
-      const options = args[1] || {};
-      const headers = options.headers || {};
-      const authHeader =
-        headers.Authorization ||
-        headers.authorization ||
-        (headers instanceof Headers ? headers.get('Authorization') : null);
-
-      if (authHeader && url.includes('playmfl.com')) {
-        window.dispatchEvent(new CustomEvent('mfl_auth_token', {
-          detail: { token: authHeader }
-        }));
-      }
-      return originalFetch.apply(this, args);
-    };
-  })();
-`;
-(document.head || document.documentElement).appendChild(interceptor);
-interceptor.remove();
-
-// Listen for the token dispatched from page context
+// Listen for the token dispatched from fetch_interceptor.js (MAIN world)
 window.addEventListener('mfl_auth_token', (event) => {
   const { token } = event.detail;
   chrome.runtime.sendMessage({ type: 'STORE_TOKEN', token });
