@@ -13,7 +13,7 @@
       headers.authorization ||
       (headers instanceof Headers ? headers.get('Authorization') : null);
 
-    if (authHeader && url.includes('playmfl.com')) {
+    if (authHeader) {
       window.dispatchEvent(new CustomEvent('mfl_auth_token', {
         detail: { token: authHeader },
       }));
