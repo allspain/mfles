@@ -54,13 +54,32 @@ async function handleOptimize(clubId) {
       };
     });
 
-    // All squad members (starters + bench) with normalized energy
-    const allSquad = players.map(player => ({
-      id: player.id,
-      energy: player.energy / 100,        // 0-10000 → 0-100
-      name: `${player.metadata.firstName} ${player.metadata.lastName}`.trim(),
-      playerObj: player,                   // full object for ovrAtPosition()
-    }));
+    // Identify suspended players (red card / accumulated yellows)
+    const starterIds = new Set(formationSlots.map(s => s.playerId));
+    const suspendedIds = new Set(
+      players.filter(p => p.matchesSuspensions?.length > 0).map(p => p.id)
+    );
+    const suspendedStarters = players
+      .filter(p => suspendedIds.has(p.id) && starterIds.has(p.id))
+      .map(p => ({
+        id: p.id,
+        name: `${p.metadata.firstName} ${p.metadata.lastName}`.trim(),
+        position: (p.metadata.positions || [])[0] || 'UNKNOWN',
+      }));
+
+    if (suspendedStarters.length > 0) {
+      console.warn('[MFLES] Suspended starters removed from pool:', suspendedStarters.map(p => p.name));
+    }
+
+    // All eligible squad members (starters + bench, excluding suspended)
+    const allSquad = players
+      .filter(p => !suspendedIds.has(p.id))
+      .map(player => ({
+        id: player.id,
+        energy: player.energy / 100,        // 0-10000 → 0-100
+        name: `${player.metadata.firstName} ${player.metadata.lastName}`.trim(),
+        playerObj: player,                   // full object for ovrAtPosition()
+      }));
 
     const { swaps, warnings, decisions, newAssignment } = optimizeLineup(allSquad, formationSlots);
 
@@ -77,13 +96,13 @@ async function handleOptimize(clubId) {
     })));
 
     if (swaps.length === 0) {
-      return { success: true, swaps: [], warnings, message: 'Already optimal' };
+      return { success: true, swaps: [], warnings, suspendedStarters, message: 'Already optimal' };
     }
 
     const newFormation = applySwaps(formation, newAssignment);
     await setFormation(clubId, squadId, newFormation, mflToken);
 
-    return { success: true, swaps, warnings };
+    return { success: true, swaps, warnings, suspendedStarters };
   } catch (err) {
     return { success: false, error: err.message };
   }

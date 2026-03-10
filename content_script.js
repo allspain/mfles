@@ -58,11 +58,15 @@ function injectOptimizeButton() {
       return;
     }
 
-    if (response.swaps.length === 0) {
+    const suspended = response.suspendedStarters || [];
+    if (response.swaps.length === 0 && suspended.length === 0) {
       setButtonState('optimal');
     } else {
-      setButtonState('success', `${response.swaps.length} swap${response.swaps.length !== 1 ? 's' : ''} made`);
-      renderSwapSummary(panel, response.swaps, response.warnings || []);
+      const label = response.swaps.length > 0
+        ? `${response.swaps.length} swap${response.swaps.length !== 1 ? 's' : ''} made`
+        : `${suspended.length} suspended`;
+      setButtonState('success', label);
+      renderSwapSummary(panel, response.swaps, response.warnings || [], suspended);
     }
   });
 }
@@ -93,9 +97,16 @@ function setButtonState(state, message) {
   }
 }
 
-function renderSwapSummary(panel, swaps, warnings) {
+function renderSwapSummary(panel, swaps, warnings, suspendedStarters) {
   panel.innerHTML = '';
   panel.classList.remove('mfl-hidden');
+
+  for (const p of (suspendedStarters || [])) {
+    const el = document.createElement('p');
+    el.className = 'mfl-warning';
+    el.textContent = `\u{1F7E5} ${p.name} suspended \u2014 removed from lineup`;
+    panel.appendChild(el);
+  }
 
   if (warnings.length > 0) {
     const warnEl = document.createElement('p');
