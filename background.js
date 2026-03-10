@@ -3,6 +3,38 @@
 
 importScripts('src/scorer.js', 'src/positions.js', 'src/optimizer.js', 'src/api.js', 'src/tactics.js');
 
+// ── Canonical slot positions per formation type ───────────────────────
+// Extracted from MFL app webpack bundle (module 57461).
+// Used so the optimizer evaluates each slot at its true position role,
+// not the native position of whichever player happens to occupy it.
+const FORMATION_SLOT_POSITIONS = {
+  '3-4-2-1':          {0:'GK',1:'CB',2:'CB',3:'CB',4:'RM',5:'CM',6:'CM',7:'LM',8:'CF',9:'ST',10:'CF'},
+  '3-4-3':            {0:'GK',1:'CB',2:'CB',3:'CB',4:'RM',5:'CM',6:'CM',7:'LM',8:'RW',9:'ST',10:'LW'},
+  '3-4-3_diamond':    {0:'GK',1:'CB',2:'CB',3:'CB',4:'RM',5:'CDM',6:'LM',7:'CAM',8:'RW',9:'ST',10:'LW'},
+  '3-5-2':            {0:'GK',1:'CB',2:'CB',3:'CB',4:'RM',5:'CM',6:'CDM',7:'CM',8:'LM',9:'ST',10:'ST'},
+  '3-5-2_B':          {0:'GK',1:'CB',2:'CB',3:'CB',4:'CDM',5:'CDM',6:'RM',7:'CAM',8:'LM',9:'ST',10:'ST'},
+  '4-1-2-1-2':        {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'RM',6:'CDM',7:'LM',8:'ST',9:'CAM',10:'ST'},
+  '4-1-2-1-2_narrow': {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'CM',6:'CDM',7:'CM',8:'ST',9:'CAM',10:'ST'},
+  '4-1-3-2':          {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'CDM',6:'RM',7:'CM',8:'LM',9:'ST',10:'ST'},
+  '4-1-4-1':          {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'RM',6:'CM',7:'CDM',8:'CM',9:'LM',10:'ST'},
+  '4-2-2-2':          {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'CAM',6:'CDM',7:'CDM',8:'CAM',9:'ST',10:'ST'},
+  '4-2-3-1':          {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'CDM',6:'CAM',7:'CDM',8:'RM',9:'ST',10:'LM'},
+  '4-2-4':            {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'CM',6:'CM',7:'RW',8:'ST',9:'ST',10:'LW'},
+  '4-3-1-2':          {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'CM',6:'CM',7:'CM',8:'ST',9:'CAM',10:'ST'},
+  '4-3-2-1':          {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'CM',6:'CM',7:'CM',8:'CF',9:'ST',10:'CF'},
+  '4-3-3':            {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'CM',6:'CM',7:'CM',8:'RW',9:'ST',10:'LW'},
+  '4-3-3_attack':     {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'CM',6:'CAM',7:'CM',8:'RW',9:'ST',10:'LW'},
+  '4-3-3_defend':     {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'CM',6:'CDM',7:'CM',8:'RW',9:'ST',10:'LW'},
+  '4-3-3_false9':     {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'CM',6:'CDM',7:'CM',8:'RW',9:'CF',10:'LW'},
+  '4-4-1-1':          {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'RM',6:'CM',7:'CM',8:'LM',9:'CF',10:'ST'},
+  '4-4-2':            {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'RM',6:'CM',7:'CM',8:'LM',9:'ST',10:'ST'},
+  '4-4-2_B':          {0:'GK',1:'RB',2:'CB',3:'CB',4:'LB',5:'RM',6:'CDM',7:'CDM',8:'LM',9:'ST',10:'ST'},
+  '5-2-3':            {0:'GK',1:'RWB',2:'CB',3:'CB',4:'CB',5:'LWB',6:'CM',7:'CM',8:'RW',9:'ST',10:'LW'},
+  '5-3-2':            {0:'GK',1:'RWB',2:'CB',3:'CB',4:'CB',5:'LWB',6:'RM',7:'CM',8:'LM',9:'ST',10:'ST'},
+  '5-4-1':            {0:'GK',1:'RWB',2:'CB',3:'CB',4:'CB',5:'LWB',6:'RM',7:'CDM',8:'LM',9:'CAM',10:'ST'},
+  '5-4-1_flat':       {0:'GK',1:'RWB',2:'CB',3:'CB',4:'CB',5:'LWB',6:'RM',7:'CM',8:'CM',9:'LM',10:'ST'},
+};
+
 // ── Message handler ──────────────────────────────────────────────────
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'STORE_TOKEN') {
@@ -40,18 +72,19 @@ async function handleOptimize(clubId) {
       fetchFormation(clubId, squadId, mflToken),
     ]);
 
-    // Build a lookup map and derive slot positions from current players
+    // Build a lookup map; derive slot positions from the formation type
+    // (not the current player), so out-of-position players don't confuse the optimizer.
     const playerById = {};
     for (const p of players) playerById[p.id] = p;
 
+    const slotPositionMap = FORMATION_SLOT_POSITIONS[formation.type] || {};
     const formationSlots = (formation.positions || []).map(slot => {
       const p = playerById[slot.playerId];
-      return {
-        index: slot.index,
-        playerId: slot.playerId,
-        captain: slot.captain,
-        position: ((p?.metadata?.positions) || [])[0] || 'UNKNOWN',
-      };
+      const position =
+        slotPositionMap[slot.index] ||
+        ((p?.metadata?.positions) || [])[0] ||
+        'UNKNOWN';
+      return { index: slot.index, playerId: slot.playerId, captain: slot.captain, position };
     });
 
     // Identify suspended players (red card / accumulated yellows)

@@ -20,4 +20,15 @@
     }
     return originalFetch.apply(this, args);
   };
+
+  // Listen for refresh requests from the content script (isolated world).
+  // Soft-navigate away then back to force the tactics component to remount
+  // and re-fetch fresh formation data from the API.
+  window.addEventListener('mfl_refresh_ui', () => {
+    const router = window.next?.router;
+    if (!router) return;
+    const tacticsPath = router.asPath;
+    const clubPath = tacticsPath.replace('/tactics', '');
+    router.push(clubPath).then(() => router.replace(tacticsPath));
+  });
 })();

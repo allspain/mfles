@@ -67,6 +67,8 @@ function injectOptimizeButton() {
         : `${suspended.length} suspended`;
       setButtonState('success', label);
       renderSwapSummary(panel, response.swaps, response.warnings || [], suspended);
+      // Trigger Next.js soft navigation to refresh the formation display
+      window.dispatchEvent(new CustomEvent('mfl_refresh_ui'));
     }
   });
 }
