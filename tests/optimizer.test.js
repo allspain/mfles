@@ -1,114 +1,134 @@
 // tests/optimizer.test.js
 const { optimizeLineup } = require('../src/optimizer');
 
-// Build a player with full metadata for position OVR calculation
-function player(id, overall, energy, primaryPosition, allPositions, inStartingXI = false) {
-  // Build stats that produce approximately `overall` at `primaryPosition`
-  // Use uniform stats of `overall` for simplicity (weights sum to 1 so result ≈ overall)
+// Build a player for the optimizer
+function player(id, overall, energy, positions) {
   const playerObj = {
     metadata: {
-      positions: allPositions,
+      positions,
       pace: overall, shooting: overall, passing: overall,
       dribbling: overall, defense: overall, physical: overall, goalkeeping: overall,
     },
   };
-  return {
-    id,
-    energy,
-    position: primaryPosition,
-    positions: allPositions,
-    name: `Player ${id}`,
-    playerObj,
-    inStartingXI,
-  };
+  return { id, energy, name: `Player ${id}`, playerObj };
+}
+
+// Build a formation slot
+function slot(index, playerId, position) {
+  return { index, playerId, position, captain: false };
 }
 
 describe('optimizeLineup', () => {
-  test('does not swap when starter scores higher than bench players', () => {
-    const squad = [
-      player('s1', 80, 95, 'CM', ['CM'], true),   // high energy → high score
-      player('b1', 75, 80, 'CM', ['CM'], false),   // lower score
-    ];
-    const result = optimizeLineup(squad);
-    expect(result.swaps).toHaveLength(0);
+  test('returns empty result for empty/invalid input', () => {
+    expect(optimizeLineup(null, [])).toEqual({ swaps: [], warnings: [], decisions: [], newAssignment: {} });
+    expect(optimizeLineup([], null)).toEqual({ swaps: [], warnings: [], decisions: [], newAssignment: {} });
   });
 
-  test('swaps fatigued starter for fresher bench player with higher score', () => {
-    const squad = [
-      player('s1', 80, 40, 'CM', ['CM'], true),   // low energy → low score
-      player('b1', 75, 92, 'CM', ['CM'], false),  // good energy → high score
+  test('keeps current player when they are already optimal', () => {
+    const players = [
+      player('s1', 80, 95, ['CM']),
+      player('b1', 75, 80, ['CM']),
     ];
-    const result = optimizeLineup(squad);
+    const slots = [slot(0, 's1', 'CM')];
+    const result = optimizeLineup(players, slots);
+    expect(result.swaps).toHaveLength(0);
+    expect(result.newAssignment[0].id).toBe('s1');
+  });
+
+  test('assigns better player to a slot regardless of starter/bench status', () => {
+    const players = [
+      player('s1', 80, 40, ['CM']),  // current starter, low energy → low score
+      player('b1', 75, 92, ['CM']),  // bench, good energy → higher score
+    ];
+    const slots = [slot(0, 's1', 'CM')];
+    const result = optimizeLineup(players, slots);
     expect(result.swaps).toHaveLength(1);
     expect(result.swaps[0].out.id).toBe('s1');
     expect(result.swaps[0].in.id).toBe('b1');
+    expect(result.newAssignment[0].id).toBe('b1');
   });
 
-  test('bench player with wrong position scores low due to familiarity and is not selected', () => {
-    // A GK on the bench gets -20 familiarity at CM, reducing their effective OVR there.
-    // A natural CM at good energy should outscore a GK playing out of position.
-    const squad = [
-      player('s1', 80, 80, 'CM', ['CM'], true),   // CM at CM: OVR=80, score=64
-      player('b1', 80, 92, 'GK', ['GK'], false),  // GK at CM: OVR=60 (after -20), score≈55.2
+  test('applies familiarity penalty for players out of position', () => {
+    // GK playing CM gets -20 familiarity, making their effective OVR much lower
+    const players = [
+      player('s1', 80, 80, ['CM']),
+      player('b1', 80, 92, ['GK']),  // GK at CM: OVR 60 after penalty → lower score
     ];
-    const result = optimizeLineup(squad);
-    // CM starter (score 64) beats GK out-of-position (score 55.2) → no swap
+    const slots = [slot(0, 's1', 'CM')];
+    const result = optimizeLineup(players, slots);
     expect(result.swaps).toHaveLength(0);
   });
 
-  test('bench player with secondary position gets -1 familiarity, not -20', () => {
-    // CM with CDM as secondary — CDM slot should prefer CM(secondary) over GK
-    const squad = [
-      player('s1', 80, 40, 'CDM', ['CDM'], true),    // fatigued CDM starter
-      player('b1', 75, 92, 'CM', ['CM', 'CDM'], false),  // CM with CDM as secondary (-1)
-      player('b2', 75, 92, 'GK', ['GK'], false),     // GK completely unfamiliar
+  test('prefers secondary-position player over completely unfamiliar player', () => {
+    const players = [
+      player('s1', 80, 40, ['CDM']),              // fatigued starter
+      player('b1', 75, 92, ['CM', 'CDM']),         // CM with CDM secondary (-1 familiarity)
+      player('b2', 75, 92, ['GK']),                // GK at CDM (-20 familiarity)
     ];
-    const result = optimizeLineup(squad);
+    const slots = [slot(0, 's1', 'CDM')];
+    const result = optimizeLineup(players, slots);
     expect(result.swaps).toHaveLength(1);
-    expect(result.swaps[0].in.id).toBe('b1'); // CM(secondary CDM) wins over GK
+    expect(result.swaps[0].in.id).toBe('b1');
   });
 
-  test('does not use the same bench player for two swaps', () => {
-    const squad = [
-      player('s1', 80, 40, 'CM', ['CM'], true),
-      player('s2', 78, 40, 'CM', ['CM'], true),
-      player('b1', 75, 92, 'CM', ['CM'], false), // only one good bench CM
+  test('never assigns the same player to two slots', () => {
+    const players = [
+      player('s1', 80, 40, ['CM']),
+      player('s2', 78, 40, ['CM']),
+      player('b1', 75, 92, ['CM']),  // only one good bench CM
     ];
-    const result = optimizeLineup(squad);
-    expect(result.swaps).toHaveLength(1);
+    const slots = [slot(0, 's1', 'CM'), slot(1, 's2', 'CM')];
+    const result = optimizeLineup(players, slots);
+    const assignedIds = Object.values(result.newAssignment).map(p => p.id);
+    expect(new Set(assignedIds).size).toBe(assignedIds.length); // all unique
   });
 
-  test('warns when starter energy below 60%', () => {
-    const squad = [
-      player('s1', 80, 55, 'CM', ['CM'], true),
-      player('b1', 79, 50, 'CM', ['CM'], false),
+  test('considers all players globally — finds optimal cross-slot assignment', () => {
+    // Best GK should go to GK slot, best ST to ST slot
+    // Even if both are currently on bench
+    const players = [
+      player('gk_weak',  55, 100, ['GK']),  // current GK starter
+      player('st_weak',  55, 100, ['ST']),  // current ST starter
+      player('gk_strong',70, 100, ['GK']),  // bench GK
+      player('st_strong',70, 100, ['ST']),  // bench ST
     ];
-    const result = optimizeLineup(squad);
+    const slots = [slot(0, 'gk_weak', 'GK'), slot(1, 'st_weak', 'ST')];
+    const result = optimizeLineup(players, slots);
+    expect(result.newAssignment[0].id).toBe('gk_strong');
+    expect(result.newAssignment[1].id).toBe('st_strong');
+    expect(result.swaps).toHaveLength(2);
+  });
+
+  test('warns about low energy players in the final assigned XI', () => {
+    const players = [
+      player('s1', 80, 55, ['CM']),  // best OVR, wins slot despite low energy
+      player('b1', 40, 80, ['CM']),  // too weak to displace s1
+    ];
+    const slots = [slot(0, 's1', 'CM')];
+    const result = optimizeLineup(players, slots);
     expect(result.warnings).toContainEqual(
       expect.objectContaining({ playerId: 's1', type: 'LOW_ENERGY', energy: 55 })
     );
   });
 
   test('swap result includes ovr, score, energy for both out and in', () => {
-    const squad = [
-      player('s1', 80, 40, 'CM', ['CM'], true),
-      player('b1', 75, 92, 'CM', ['CM'], false),
+    const players = [
+      player('s1', 80, 40, ['CM']),
+      player('b1', 75, 92, ['CM']),
     ];
-    const result = optimizeLineup(squad);
+    const slots = [slot(0, 's1', 'CM')];
+    const result = optimizeLineup(players, slots);
     expect(result.swaps[0].out).toMatchObject({ id: 's1', ovr: expect.any(Number), score: expect.any(Number), energy: 40 });
     expect(result.swaps[0].in).toMatchObject({ id: 'b1', ovr: expect.any(Number), score: expect.any(Number) });
   });
 
-  test('does not swap when scores are equal', () => {
-    const squad = [
-      player('s1', 75, 80, 'CM', ['CM'], true),
-      player('b1', 75, 80, 'CM', ['CM'], false),
+  test('no swap when scores are equal', () => {
+    const players = [
+      player('s1', 75, 80, ['CM']),
+      player('b1', 75, 80, ['CM']),
     ];
-    const result = optimizeLineup(squad);
+    const slots = [slot(0, 's1', 'CM')];
+    const result = optimizeLineup(players, slots);
     expect(result.swaps).toHaveLength(0);
-  });
-
-  test('returns empty result for non-array input', () => {
-    expect(optimizeLineup(null)).toEqual({ swaps: [], warnings: [], decisions: [] });
   });
 });

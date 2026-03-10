@@ -40,39 +40,47 @@ async function handleOptimize(clubId) {
       fetchFormation(clubId, squadId, mflToken),
     ]);
 
-    // Normalize players for the optimizer
-    const startingXIIds = new Set((formation.positions || []).map(p => p.playerId));
+    // Build a lookup map and derive slot positions from current players
+    const playerById = {};
+    for (const p of players) playerById[p.id] = p;
 
-    const squad = players.map(player => ({
+    const formationSlots = (formation.positions || []).map(slot => {
+      const p = playerById[slot.playerId];
+      return {
+        index: slot.index,
+        playerId: slot.playerId,
+        captain: slot.captain,
+        position: ((p?.metadata?.positions) || [])[0] || 'UNKNOWN',
+      };
+    });
+
+    // All squad members (starters + bench) with normalized energy
+    const allSquad = players.map(player => ({
       id: player.id,
-      energy: player.energy / 100,          // 0-10000 → 0-100
-      position: (player.metadata.positions || [])[0] || 'UNKNOWN',
-      positions: player.metadata.positions || [],
+      energy: player.energy / 100,        // 0-10000 → 0-100
       name: `${player.metadata.firstName} ${player.metadata.lastName}`.trim(),
-      playerObj: player,                     // full object for ovrAtPosition()
-      inStartingXI: startingXIIds.has(player.id),
+      playerObj: player,                   // full object for ovrAtPosition()
     }));
 
-    const { swaps, warnings, decisions } = optimizeLineup(squad);
+    const { swaps, warnings, decisions, newAssignment } = optimizeLineup(allSquad, formationSlots);
+
     console.log('[MFLES] Lineup analysis:');
     console.table(decisions.map(d => ({
-      'Starter': d.starter,
+      'Slot Player': d.starter,
       'Pos': d.position,
-      'S.OVR': d.starterOvr,
-      'S.Nrg': d.starterEnergy + '%',
-      'S.Score': d.starterScore,
-      'Best Bench': d.inPlayer || '-',
-      'B.OVR': d.inOvr ?? '-',
-      'B.Nrg': d.inEnergy != null ? d.inEnergy + '%' : '-',
-      'B.Score': d.inScore ?? '-',
-      'Result': d.swapped ? '✓ SWAP' : d.reason,
+      'Curr OVR': d.starterOvr,
+      'Curr Score': d.starterScore,
+      'Assigned': d.inPlayer || d.starter,
+      'Asgn OVR': d.inOvr ?? d.starterOvr,
+      'Asgn Score': d.inScore ?? d.starterScore,
+      'Result': d.swapped ? '✓ SWAP' : 'optimal',
     })));
 
     if (swaps.length === 0) {
       return { success: true, swaps: [], warnings, message: 'Already optimal' };
     }
 
-    const newFormation = applySwaps(formation, swaps);
+    const newFormation = applySwaps(formation, newAssignment);
     await setFormation(clubId, squadId, newFormation, mflToken);
 
     return { success: true, swaps, warnings };
