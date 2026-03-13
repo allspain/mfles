@@ -164,5 +164,147 @@ new MutationObserver(() => {
   }
 }).observe(document, { subtree: true, childList: true });
 
-// Position OVR tooltip augmentation runs in MAIN world (fetch_interceptor.js)
-// where ovrAtPosition() from src/positions.js is available.
+// ── Position OVR tooltip augmentation ───────────────────────────────
+// Player extraction from React fiber tree.
+// DOM node expando properties (__reactFiber$...) are accessible from
+// the isolated world because they are properties of shared DOM objects.
+
+// Tactics page: walk fiber up from any player-position element to find
+// the shared playersListStore, then look up the player by ID.
+function getPlayerFromTacticsStore(playerId) {
+  const el = document.querySelector('[class*="player-position-"]');
+  if (!el) return null;
+  const fiberKey = Object.keys(el).find(k => k.startsWith('__reactFiber'));
+  if (!fiberKey) return null;
+  let fiber = el[fiberKey];
+  while (fiber) {
+    if (fiber.memoizedProps?.playersListStore?.players) {
+      return fiber.memoizedProps.playersListStore.players.find(p => p.id === playerId) || null;
+    }
+    fiber = fiber.return;
+  }
+  return null;
+}
+
+// Scouting page: the row fiber prop contains the full player object directly.
+function getPlayerFromRowFiber(el) {
+  const fiberKey = Object.keys(el).find(k => k.startsWith('__reactFiber'));
+  if (!fiberKey) return null;
+  let fiber = el[fiberKey];
+  while (fiber) {
+    if (fiber.memoizedProps?.row?.metadata?.positions) {
+      return fiber.memoizedProps.row;
+    }
+    fiber = fiber.return;
+  }
+  return null;
+}
+
+// Coordinate → position label for grey (no-affinity) circles.
+// Derived from MFL pitch SVG layout — fixed across all players/pages.
+const PITCH_COORD_POSITIONS = {
+  '8,34':  'GK',
+  '20,55': 'RB',  '20,13': 'LB',  '20,34': 'CB',
+  '37,55': 'RWB', '37,13': 'LWB',
+  '43,34': 'CDM',
+  '62,55': 'RM',  '62,13': 'LM',  '62,34': 'CM',
+  '75,34': 'CAM',
+  '84,55': 'RW',  '84,13': 'LW',
+  '86,34': 'CF',
+  '97,34': 'ST',
+};
+
+function makeSvgText(x, y, fontSize, fontWeight, fill, content) {
+  const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  t.setAttribute('x', x);
+  t.setAttribute('y', y);
+  t.setAttribute('font-size', fontSize);
+  t.setAttribute('font-family', 'sans-serif');
+  t.setAttribute('font-weight', fontWeight);
+  t.setAttribute('fill', fill);
+  t.setAttribute('text-anchor', 'middle');
+  t.setAttribute('transform', 'rotate(90)');
+  t.textContent = content;
+  return t;
+}
+
+function augmentSvgWithOvrs(tooltipEl, ovrs) {
+  const svg = tooltipEl.querySelector('svg');
+  if (!svg) return;
+
+  for (const g of svg.querySelectorAll('g')) {
+    const circles = g.querySelectorAll(':scope > circle');
+    const textEl = g.querySelector(':scope > text');
+
+    if (circles.length === 2 && textEl) {
+      // Coloured circle — already labelled, add OVR below
+      const posLabel = textEl.textContent.trim();
+      if (!posLabel || !(posLabel in ovrs)) continue;
+
+      circles[0].setAttribute('r', '5.8');
+      circles[1].setAttribute('r', '5');
+      textEl.setAttribute('y', '-1.5');
+      textEl.setAttribute('font-size', '2.3');
+      g.appendChild(makeSvgText('0', '2.8', '3', '900', '#111', String(ovrs[posLabel])));
+
+    } else if (circles.length === 1 && !textEl) {
+      // Grey circle — derive position from SVG coordinates
+      const m = g.getAttribute('transform')?.match(/translate\((\d+),\s*(\d+)\)/);
+      if (!m) continue;
+      const posLabel = PITCH_COORD_POSITIONS[`${m[1]},${m[2]}`];
+      if (!posLabel || !(posLabel in ovrs)) continue;
+
+      circles[0].setAttribute('r', '5');
+      g.appendChild(makeSvgText('0', '-1.5', '2.3', '700', '#fff', posLabel));
+      g.appendChild(makeSvgText('0', '2.8', '3', '900', '#fff', String(ovrs[posLabel])));
+    }
+  }
+}
+
+// Track the last hovered player object. Updated on mouseover for both
+// tactics ([class*="player-position-"]) and scouting (.inline.cursor-help).
+let _lastHoveredPlayer = null;
+
+document.addEventListener('mouseover', (e) => {
+  // Tactics page
+  const tacticsEl = e.target.closest('[class*="player-position-"]');
+  if (tacticsEl) {
+    const match = [...tacticsEl.classList].join(' ').match(/player-position-(\d+)/);
+    if (match) {
+      _lastHoveredPlayer = getPlayerFromTacticsStore(parseInt(match[1], 10));
+    }
+    return;
+  }
+  // Scouting page
+  const scoutEl = e.target.closest('.inline.cursor-help');
+  if (scoutEl) {
+    const player = getPlayerFromRowFiber(scoutEl);
+    if (player?.metadata?.positions) _lastHoveredPlayer = player;
+  }
+}, true);
+
+function setupTooltipObserver() {
+  new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (node.nodeType !== 1) continue;
+        if (!node.classList?.contains('react-tiny-popover-container')) continue;
+        if (!_lastHoveredPlayer) continue;
+
+        const player = _lastHoveredPlayer;
+        chrome.runtime.sendMessage({ type: 'GET_POSITION_OVRS', player })
+          .then(response => {
+            if (response?.ovrs && node.isConnected) {
+              augmentSvgWithOvrs(node, response.ovrs);
+            }
+          });
+      }
+    }
+  }).observe(document.body, { childList: true });
+}
+
+if (document.body) {
+  setupTooltipObserver();
+} else {
+  document.addEventListener('DOMContentLoaded', setupTooltipObserver);
+}
