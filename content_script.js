@@ -141,14 +141,21 @@ if (onTacticsPage()) {
   injectOptimizeButton();
 }
 
+function removeOptimizeButton() {
+  document.getElementById('mfl-optimize-btn')?.remove();
+  document.getElementById('mfl-panel')?.remove();
+}
+
 // Handle SPA navigation and button removal (React rerenders can detach body children)
 let lastUrl = location.href;
 new MutationObserver(() => {
-  // Reinject on URL change
+  // Handle URL change
   if (location.href !== lastUrl) {
     lastUrl = location.href;
     if (onTacticsPage()) {
       setTimeout(injectOptimizeButton, 500);
+    } else {
+      removeOptimizeButton();
     }
   }
   // Reinject if button was removed while still on tactics page
