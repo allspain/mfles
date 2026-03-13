@@ -48,6 +48,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     handleOptimize(message.clubId).then(sendResponse);
     return true; // keep channel open for async response
   }
+
+  if (message.type === 'GET_POSITION_OVRS') {
+    const ALL_POSITIONS = ['GK','CB','RB','LB','RWB','LWB','CDM','CM','CAM','RM','LM','RW','LW','CF','ST'];
+    const ovrs = {};
+    for (const pos of ALL_POSITIONS) {
+      ovrs[pos] = ovrAtPosition(message.player, pos);
+    }
+    sendResponse({ ovrs });
+    return true;
+  }
 });
 
 // ── Lineup optimization ──────────────────────────────────────────────
