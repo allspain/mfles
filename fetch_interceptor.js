@@ -31,4 +31,97 @@
     const clubPath = tacticsPath.replace('/tactics', '');
     router.push(clubPath).then(() => router.replace(tacticsPath));
   });
+
+  // ── Position OVR tooltip augmentation ──────────────────────────────
+  // Runs in MAIN world so ovrAtPosition() from src/positions.js is available.
+  // When hovering over a player's position cell the MFL app shows a mini-pitch
+  // tooltip. We augment each position circle with the player's calculated OVR
+  // at that position using the same ovrAtPosition() logic as the optimizer.
+
+  // Walk the React fiber tree from a known element to find playersListStore
+  function getPlayerById(playerId) {
+    const el = document.querySelector('[class*="player-position-"]');
+    if (!el) return null;
+    const fiberKey = Object.keys(el).find(k => k.startsWith('__reactFiber'));
+    if (!fiberKey) return null;
+    let fiber = el[fiberKey];
+    while (fiber) {
+      if (fiber.memoizedProps?.playersListStore?.players) {
+        return fiber.memoizedProps.playersListStore.players.find(p => p.id === playerId) || null;
+      }
+      fiber = fiber.return;
+    }
+    return null;
+  }
+
+  // Augment each position circle in the tooltip SVG with a calculated OVR number
+  function augmentPositionTooltip(tooltipEl, playerId) {
+    const player = getPlayerById(playerId);
+    if (!player) return;
+    const svg = tooltipEl.querySelector('svg');
+    if (!svg) return;
+
+    for (const g of svg.querySelectorAll('g')) {
+      const circles = g.querySelectorAll(':scope > circle');
+      const textEl = g.querySelector(':scope > text');
+      if (circles.length !== 2 || !textEl) continue;
+      const posLabel = textEl.textContent.trim();
+      if (!posLabel) continue;
+
+      const ovr = ovrAtPosition(player, posLabel);
+
+      // Expand circles to fit both the position label and OVR number
+      circles[0].setAttribute('r', '5.8'); // outer (translucent halo)
+      circles[1].setAttribute('r', '5');   // inner (colour fill)
+
+      // Shift position label up to make room for OVR below it
+      textEl.setAttribute('y', '-1.5');
+      textEl.setAttribute('font-size', '2.3');
+
+      // Append OVR text below position label
+      const ovrText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      ovrText.setAttribute('x', '0');
+      ovrText.setAttribute('y', '2.8');
+      ovrText.setAttribute('font-size', '3');
+      ovrText.setAttribute('font-family', 'sans-serif');
+      ovrText.setAttribute('font-weight', '900');
+      ovrText.setAttribute('fill', '#111');
+      ovrText.setAttribute('text-anchor', 'middle');
+      ovrText.setAttribute('transform', 'rotate(90)');
+      ovrText.textContent = String(ovr);
+      g.appendChild(ovrText);
+    }
+  }
+
+  // Track the last hovered player-position element via mouseover (more reliable than
+  // CSS :hover which isn't set during synthetic dispatches and can race with real hover).
+  let _lastHoveredPlayerId = null;
+  document.addEventListener('mouseover', (e) => {
+    const el = e.target.closest('[class*="player-position-"]');
+    if (!el) return;
+    const match = [...el.classList].join(' ').match(/player-position-(\d+)/);
+    if (match) _lastHoveredPlayerId = parseInt(match[1], 10);
+  }, true);
+
+  // Observe body for the popover being appended (it's fixed-position, direct child of body).
+  // Deferred until document.body exists since this script runs at document_start.
+  function setupTooltipObserver() {
+    new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType === 1 && node.classList?.contains('react-tiny-popover-container')) {
+            if (_lastHoveredPlayerId != null) {
+              augmentPositionTooltip(node, _lastHoveredPlayerId);
+            }
+          }
+        }
+      }
+    }).observe(document.body, { childList: true });
+  }
+
+  if (document.body) {
+    setupTooltipObserver();
+  } else {
+    document.addEventListener('DOMContentLoaded', setupTooltipObserver);
+  }
 })();

@@ -156,3 +156,6 @@ new MutationObserver(() => {
     injectOptimizeButton();
   }
 }).observe(document, { subtree: true, childList: true });
+
+// Position OVR tooltip augmentation runs in MAIN world (fetch_interceptor.js)
+// where ovrAtPosition() from src/positions.js is available.
