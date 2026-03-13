@@ -297,7 +297,8 @@ function setupTooltipObserver() {
             if (response?.ovrs && node.isConnected) {
               augmentSvgWithOvrs(node, response.ovrs);
             }
-          });
+          })
+          .catch(() => {}); // service worker may be sleeping; silently ignore
       }
     }
   }).observe(document.body, { childList: true });
