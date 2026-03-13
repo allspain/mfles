@@ -56,9 +56,9 @@
     if (!fiberKey) return null;
     let fiber = el[fiberKey];
     while (fiber) {
-      if (fiber.memoizedProps?.row?.metadata?.positions) {
-        return fiber.memoizedProps.row;
-      }
+      const props = fiber.memoizedProps;
+      if (props?.row?.metadata?.positions) return props.row;
+      if (props?.player?.metadata?.positions) return props.player;
       fiber = fiber.return;
     }
     return null;
@@ -74,7 +74,7 @@
       if (match) player = getPlayerFromTacticsStore(parseInt(match[1], 10));
     }
 
-    // Scouting page: player data is in the row fiber prop
+    // Tactics table + scouting page: player data is in row/player fiber prop
     if (!player) {
       const scoutEl = e.target.closest('.inline.cursor-help');
       if (scoutEl) player = getPlayerFromRowFiber(scoutEl);
