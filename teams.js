@@ -165,7 +165,7 @@ function renderSquadCard(club, previewData) {
   const { formationType, playerCount, currentOvr, lineups } = previewData;
   const bestLineup    = lineups.find(l => l.label === 'BEST');
   const currentLineup = lineups.find(l => l.label === 'CURRENT');
-  const bestOvr = bestLineup?.totalOvr ?? currentOvr;
+  const bestOvr = Math.max(...lineups.map(l => l.totalOvr));
   const diff = bestOvr - currentOvr;
 
   const hdr = el('div', 'squad-card-header');
