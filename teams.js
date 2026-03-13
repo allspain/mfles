@@ -1,5 +1,17 @@
 // teams.js — All Teams page logic
 
+// ── Energy-adjusted score (mirrors src/scorer.js) ───────────────────
+// Below 92% energy: linear (energy/100 × OVR). Above 92%: diminishing returns.
+function effectiveScore(ovr, energy) {
+  energy = Math.min(100, Math.max(0, energy));
+  if (energy <= 92) return (energy / 100) * ovr;
+  return (0.92 + 0.08 * (1 - Math.exp(-3 * (energy - 92) / 8))) * ovr;
+}
+
+function lineupTotalEff(assignment) {
+  return Object.values(assignment).reduce((sum, p) => sum + effectiveScore(p.ovr, p.energy), 0);
+}
+
 // ── Position group mapping ──────────────────────────────────────────
 const POSITION_GROUPS = {
   GK: 'GK', GKP: 'GK',
@@ -62,11 +74,16 @@ function renderPitchCols(assignment, currentAssignment) {
     colEl.appendChild(el('div', `col-header ${col.cls}`, col.label));
     for (const p of players) {
       const isSwapped = currentAssignment && currentAssignment[p.idx]?.id !== p.id;
+      const eff = effectiveScore(p.ovr, p.energy);
       const card = el('div', `player-card${isSwapped ? ' swapped' : ''}`);
       card.innerHTML = `
         <div class="pc-pos">${p.position}</div>
         <div class="pc-name">${p.name}${isSwapped ? ' ↑' : ''}</div>
-        <div class="pc-stat"><span class="ovr">${p.ovr}</span> · ${p.energy}%</div>
+        <div class="pc-stat">
+          <span class="ovr">${p.ovr}</span>
+          <span class="pc-eff" title="Energy-adjusted score (what the optimizer uses)">→ ${eff.toFixed(1)}</span>
+          · ${p.energy}%
+        </div>
       `;
       colEl.appendChild(card);
     }
@@ -87,11 +104,13 @@ function renderLineupRow(lineup, currentAssignment, clubId) {
   if (isCurrent) { badgeCls = 'badge-current'; badgeText = 'CURRENT'; }
   if (isBest)    { badgeCls = 'badge-best';    badgeText = '★ BEST'; }
 
+  const totalEff = lineupTotalEff(lineup.assignment);
   const summary = el('div', 'lineup-summary');
   summary.innerHTML = `
     <span class="lineup-badge ${badgeCls}">${badgeText}</span>
     <span class="lineup-desc">${lineup.description}</span>
     <span class="lineup-ovr ${isCurrent ? 'ovr-blue' : 'ovr-green'}">${lineup.totalOvr}</span>
+    <span class="lineup-eff" title="Sum of energy-adjusted scores — what the optimizer maximises">${totalEff.toFixed(1)} eff</span>
     <span class="lineup-diff">${lineup.diff > 0 ? '+' + lineup.diff : ''}</span>
   `;
 

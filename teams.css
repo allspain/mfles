@@ -34,6 +34,18 @@ body {
   margin-top: 2px;
 }
 
+.scoring-legend {
+  font-size: 11px;
+  color: #6e7681;
+  margin-top: 8px;
+  line-height: 1.5;
+  max-width: 800px;
+}
+
+.scoring-legend strong {
+  color: #8b949e;
+}
+
 /* ── Content ──────────────────────────────────────────────────────── */
 .content {
   flex: 1;
@@ -279,6 +291,12 @@ body {
   color: #3fb950;
 }
 
+.lineup-eff {
+  font-size: 11px;
+  color: #6e7681;
+  white-space: nowrap;
+}
+
 .lineup-diff {
   font-size: 11px;
   color: #3fb950;
@@ -430,6 +448,11 @@ body {
 .pc-stat .ovr {
   font-weight: bold;
   color: #3fb950;
+}
+
+.pc-eff {
+  color: #6e7681;
+  font-style: italic;
 }
 
 /* ── Optimize All button ──────────────────────────────────────────── */
