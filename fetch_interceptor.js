@@ -54,7 +54,33 @@
     return null;
   }
 
-  // Augment each position circle in the tooltip SVG with a calculated OVR number
+  // Coordinate → position label for grey (no-affinity) circles.
+  // Derived from MFL pitch SVG layout — these coords are fixed across all players.
+  const PITCH_COORD_POSITIONS = {
+    '8,34': 'GK',
+    '20,55': 'RB', '20,13': 'LB', '20,34': 'CB',
+    '37,55': 'RWB', '37,13': 'LWB',
+    '84,55': 'RW', '84,13': 'LW',
+    '86,34': 'CF',
+    '97,34': 'ST',
+  };
+
+  function makeSvgText(x, y, fontSize, fontWeight, fill, content) {
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttribute('x', x);
+    t.setAttribute('y', y);
+    t.setAttribute('font-size', fontSize);
+    t.setAttribute('font-family', 'sans-serif');
+    t.setAttribute('font-weight', fontWeight);
+    t.setAttribute('fill', fill);
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('transform', 'rotate(90)');
+    t.textContent = content;
+    return t;
+  }
+
+  // Augment each position circle in the tooltip SVG with a calculated OVR number.
+  // Coloured circles already have a position label; grey circles are looked up by coordinate.
   function augmentPositionTooltip(tooltipEl, playerId) {
     const player = getPlayerById(playerId);
     if (!player) return;
@@ -64,32 +90,31 @@
     for (const g of svg.querySelectorAll('g')) {
       const circles = g.querySelectorAll(':scope > circle');
       const textEl = g.querySelector(':scope > text');
-      if (circles.length !== 2 || !textEl) continue;
-      const posLabel = textEl.textContent.trim();
-      if (!posLabel) continue;
 
-      const ovr = ovrAtPosition(player, posLabel);
+      if (circles.length === 2 && textEl) {
+        // Coloured circle — already labelled, just add OVR below
+        const posLabel = textEl.textContent.trim();
+        if (!posLabel) continue;
+        const ovr = ovrAtPosition(player, posLabel);
 
-      // Expand circles to fit both the position label and OVR number
-      circles[0].setAttribute('r', '5.8'); // outer (translucent halo)
-      circles[1].setAttribute('r', '5');   // inner (colour fill)
+        circles[0].setAttribute('r', '5.8'); // outer halo
+        circles[1].setAttribute('r', '5');   // inner fill
+        textEl.setAttribute('y', '-1.5');
+        textEl.setAttribute('font-size', '2.3');
+        g.appendChild(makeSvgText('0', '2.8', '3', '900', '#111', String(ovr)));
 
-      // Shift position label up to make room for OVR below it
-      textEl.setAttribute('y', '-1.5');
-      textEl.setAttribute('font-size', '2.3');
+      } else if (circles.length === 1 && !textEl) {
+        // Grey circle — derive position from SVG coordinates
+        const m = g.getAttribute('transform')?.match(/translate\((\d+),\s*(\d+)\)/);
+        if (!m) continue;
+        const posLabel = PITCH_COORD_POSITIONS[`${m[1]},${m[2]}`];
+        if (!posLabel) continue;
+        const ovr = ovrAtPosition(player, posLabel);
 
-      // Append OVR text below position label
-      const ovrText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      ovrText.setAttribute('x', '0');
-      ovrText.setAttribute('y', '2.8');
-      ovrText.setAttribute('font-size', '3');
-      ovrText.setAttribute('font-family', 'sans-serif');
-      ovrText.setAttribute('font-weight', '900');
-      ovrText.setAttribute('fill', '#111');
-      ovrText.setAttribute('text-anchor', 'middle');
-      ovrText.setAttribute('transform', 'rotate(90)');
-      ovrText.textContent = String(ovr);
-      g.appendChild(ovrText);
+        circles[0].setAttribute('r', '5');
+        g.appendChild(makeSvgText('0', '-1.5', '2.3', '700', '#fff', posLabel));
+        g.appendChild(makeSvgText('0', '2.8', '3', '900', '#fff', String(ovr)));
+      }
     }
   }
 
