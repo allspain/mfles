@@ -7,6 +7,8 @@ importScripts('src/scorer.js', 'src/positions.js', 'src/optimizer.js', 'src/api.
 // Extracted from MFL app webpack bundle (module 57461).
 // Used so the optimizer evaluates each slot at its true position role,
 // not the native position of whichever player happens to occupy it.
+const ALL_POSITIONS = ['GK','CB','RB','LB','RWB','LWB','CDM','CM','CAM','RM','LM','RW','LW','CF','ST'];
+
 const FORMATION_SLOT_POSITIONS = {
   '3-4-2-1':          {0:'GK',1:'CB',2:'CB',3:'CB',4:'RM',5:'CM',6:'CM',7:'LM',8:'CF',9:'ST',10:'CF'},
   '3-4-3':            {0:'GK',1:'CB',2:'CB',3:'CB',4:'RM',5:'CM',6:'CM',7:'LM',8:'RW',9:'ST',10:'LW'},
@@ -50,13 +52,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'GET_POSITION_OVRS') {
-    const ALL_POSITIONS = ['GK','CB','RB','LB','RWB','LWB','CDM','CM','CAM','RM','LM','RW','LW','CF','ST'];
+    if (!message.player || typeof message.player !== 'object') {
+      sendResponse({ ovrs: null, error: 'Invalid player object' });
+      return;
+    }
     const ovrs = {};
     for (const pos of ALL_POSITIONS) {
       ovrs[pos] = ovrAtPosition(message.player, pos);
     }
     sendResponse({ ovrs });
-    return true;
+    return;
   }
 });
 
