@@ -1,6 +1,6 @@
 // content_script.js
-// Runs in ISOLATED world. fetch_interceptor.js (MAIN world) wraps window.fetch
-// and dispatches 'mfl_auth_token' events which this script forwards to background.js.
+// Runs in ISOLATED world. Handles auth token relay, optimize button, and
+// position OVR tooltip augmentation (tactics + scouting pages).
 
 // ── Auth token capture ──────────────────────────────────────────────
 // Listen for the token dispatched from fetch_interceptor.js (MAIN world)
