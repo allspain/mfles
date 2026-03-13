@@ -15,7 +15,7 @@
   "content_scripts": [
     {
       "matches": ["https://app.playmfl.com/*"],
-      "js": ["src/positions.js", "fetch_interceptor.js"],
+      "js": ["fetch_interceptor.js"],
       "world": "MAIN",
       "run_at": "document_start"
     },
