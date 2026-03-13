@@ -9,6 +9,7 @@
   "host_permissions": [
     "https://*.playmfl.com/*"
   ],
+  "action": {},
   "background": {
     "service_worker": "background.js"
   },
