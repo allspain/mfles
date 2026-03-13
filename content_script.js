@@ -165,40 +165,10 @@ new MutationObserver(() => {
 }).observe(document, { subtree: true, childList: true });
 
 // ── Position OVR tooltip augmentation ───────────────────────────────
-// Player extraction from React fiber tree.
-// DOM node expando properties (__reactFiber$...) are accessible from
-// the isolated world because they are properties of shared DOM objects.
-
-// Tactics page: walk fiber up from any player-position element to find
-// the shared playersListStore, then look up the player by ID.
-function getPlayerFromTacticsStore(playerId) {
-  const el = document.querySelector('[class*="player-position-"]');
-  if (!el) return null;
-  const fiberKey = Object.keys(el).find(k => k.startsWith('__reactFiber'));
-  if (!fiberKey) return null;
-  let fiber = el[fiberKey];
-  while (fiber) {
-    if (fiber.memoizedProps?.playersListStore?.players) {
-      return fiber.memoizedProps.playersListStore.players.find(p => p.id === playerId) || null;
-    }
-    fiber = fiber.return;
-  }
-  return null;
-}
-
-// Scouting page: the row fiber prop contains the full player object directly.
-function getPlayerFromRowFiber(el) {
-  const fiberKey = Object.keys(el).find(k => k.startsWith('__reactFiber'));
-  if (!fiberKey) return null;
-  let fiber = el[fiberKey];
-  while (fiber) {
-    if (fiber.memoizedProps?.row?.metadata?.positions) {
-      return fiber.memoizedProps.row;
-    }
-    fiber = fiber.return;
-  }
-  return null;
-}
+// Player data is extracted in MAIN world (fetch_interceptor.js) via React
+// fiber traversal (fibers are not accessible from isolated world) and
+// dispatched here as a CustomEvent. This script handles messaging to
+// background for OVR computation and SVG DOM augmentation.
 
 // Coordinate → position label for grey (no-affinity) circles.
 // Derived from MFL pitch SVG layout — fixed across all players/pages.
@@ -261,27 +231,12 @@ function augmentSvgWithOvrs(tooltipEl, ovrs) {
   }
 }
 
-// Track the last hovered player object. Updated on mouseover for both
-// tactics ([class*="player-position-"]) and scouting (.inline.cursor-help).
+// Receive player data from MAIN world (fetch_interceptor.js dispatches this
+// on hover after extracting from the React fiber tree).
 let _lastHoveredPlayer = null;
-
-document.addEventListener('mouseover', (e) => {
-  // Tactics page
-  const tacticsEl = e.target.closest('[class*="player-position-"]');
-  if (tacticsEl) {
-    const match = [...tacticsEl.classList].join(' ').match(/player-position-(\d+)/);
-    if (match) {
-      _lastHoveredPlayer = getPlayerFromTacticsStore(parseInt(match[1], 10));
-    }
-    return;
-  }
-  // Scouting page
-  const scoutEl = e.target.closest('.inline.cursor-help');
-  if (scoutEl) {
-    const player = getPlayerFromRowFiber(scoutEl);
-    if (player?.metadata?.positions) _lastHoveredPlayer = player;
-  }
-}, true);
+window.addEventListener('mfl_player_hovered', (e) => {
+  _lastHoveredPlayer = e.detail.player;
+});
 
 function setupTooltipObserver() {
   new MutationObserver((mutations) => {
