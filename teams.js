@@ -247,12 +247,14 @@ async function init() {
 
   if (!clubsResp?.success) {
     const err = clubsResp?.error;
-    if (err === 'not_authenticated') {
+    const isAuthError = err === 'not_authenticated' || String(clubsResp?.error).includes('401');
+    if (isAuthError) {
       mainEl.innerHTML = `
         <div class="state-page">
           <div class="state-icon">🔒</div>
-          <h2>Not authenticated</h2>
-          <p>Browse any <a href="https://app.playmfl.com" target="_blank">MFL page</a> first to authenticate the extension.</p>
+          <h2>Session expired</h2>
+          <p>Your MFL session has expired. <a href="https://app.playmfl.com" target="_blank">Log back in at playmfl.com</a>, then return here and reload.</p>
+          <button class="btn-retry" onclick="location.reload()">Retry</button>
         </div>`;
     } else {
       mainEl.innerHTML = `
