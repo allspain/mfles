@@ -64,6 +64,53 @@
     return null;
   }
 
+  // ── Inline position OVR display ─────────────────────────────────────
+  // Write player data to each .inline.cursor-help element's dataset so the
+  // isolated world content script can read it without fiber traversal.
+  function writePlayerData(el) {
+    if (el.dataset.mflPlayer) return;
+    // Only position cells — text is exclusively uppercase 2-3 letter codes e.g. "LB, LWB, LM"
+    if (!/^[A-Z]{2,3}(,\s*[A-Z]{2,3})*$/.test(el.textContent.trim())) return;
+    const player = getPlayerFromRowFiber(el);
+    if (!player?.metadata?.positions) return;
+    el.dataset.mflPlayer = JSON.stringify({
+      id: player.id,
+      metadata: {
+        positions: player.metadata.positions,
+        pace: player.metadata.pace,
+        shooting: player.metadata.shooting,
+        passing: player.metadata.passing,
+        dribbling: player.metadata.dribbling,
+        defense: player.metadata.defense,
+        physical: player.metadata.physical,
+        goalkeeping: player.metadata.goalkeeping,
+      },
+    });
+  }
+
+  function setupPlayerDataWriter() {
+    for (const el of document.querySelectorAll('.inline.cursor-help')) writePlayerData(el);
+    new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        for (const node of m.addedNodes) {
+          if (node.nodeType !== 1) continue;
+          if (node.classList?.contains('inline') && node.classList?.contains('cursor-help')) {
+            writePlayerData(node);
+          }
+          for (const el of (node.querySelectorAll?.('.inline.cursor-help') ?? [])) {
+            writePlayerData(el);
+          }
+        }
+      }
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+
+  if (document.readyState !== 'loading') {
+    setupPlayerDataWriter();
+  } else {
+    document.addEventListener('DOMContentLoaded', setupPlayerDataWriter);
+  }
+
   document.addEventListener('mouseover', (e) => {
     let player = null;
 
