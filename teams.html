@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MFL Enhancement Suite — All Teams</title>
+  <link rel="stylesheet" href="teams.css">
+</head>
+<body>
+  <header class="page-header">
+    <div>
+      <h1>MFL Enhancement Suite — All Teams</h1>
+      <div class="page-subtitle" id="page-subtitle">Loading…</div>
+    </div>
+    <div class="scoring-legend">
+      <strong>Eff score</strong> = OVR × (energy ÷ 100) below 92% energy; diminishing returns above 92%.
+      The optimizer maximises the sum of eff scores — not raw OVR — so a swap may lower total OVR
+      if it brings in a fresher player.
+    </div>
+  </header>
+
+  <main class="content" id="main-content"></main>
+
+  <footer class="bottom-bar">
+    <button class="btn-optimize-all" id="btn-optimize-all" disabled>
+      ⚡ Optimize All Squads
+    </button>
+  </footer>
+
+  <script src="teams.js"></script>
+</body>
+</html>
