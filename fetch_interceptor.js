@@ -81,7 +81,21 @@
     }
 
     if (player?.metadata?.positions) {
-      window.dispatchEvent(new CustomEvent('mfl_player_hovered', { detail: { player } }));
+      // Write to dataset — synchronous DOM write visible to isolated world immediately,
+      // unlike CustomEvent dispatch which is delivered async across worlds.
+      document.body.dataset.mflHoveredPlayer = JSON.stringify({
+        id: player.id,
+        metadata: {
+          positions: player.metadata.positions,
+          pace: player.metadata.pace,
+          shooting: player.metadata.shooting,
+          passing: player.metadata.passing,
+          dribbling: player.metadata.dribbling,
+          defense: player.metadata.defense,
+          physical: player.metadata.physical,
+          goalkeeping: player.metadata.goalkeeping,
+        },
+      });
     }
   }, true);
 })();

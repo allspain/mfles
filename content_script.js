@@ -231,12 +231,11 @@ function augmentSvgWithOvrs(tooltipEl, ovrs) {
   }
 }
 
-// Receive player data from MAIN world (fetch_interceptor.js dispatches this
-// on hover after extracting from the React fiber tree).
-let _lastHoveredPlayer = null;
-window.addEventListener('mfl_player_hovered', (e) => {
-  _lastHoveredPlayer = e.detail.player;
-});
+// ── Position OVR tooltip augmentation ───────────────────────────────
+// Player data is written to document.body.dataset.mflHoveredPlayer by
+// fetch_interceptor.js (MAIN world) on mouseover — a synchronous DOM write
+// that is immediately visible to this isolated world. Read it when a
+// react-tiny-popover-container is added to body.
 
 function setupTooltipObserver() {
   new MutationObserver((mutations) => {
@@ -244,9 +243,12 @@ function setupTooltipObserver() {
       for (const node of mutation.addedNodes) {
         if (node.nodeType !== 1) continue;
         if (!node.classList?.contains('react-tiny-popover-container')) continue;
-        if (!_lastHoveredPlayer) continue;
 
-        const player = _lastHoveredPlayer;
+        const playerJson = document.body.dataset.mflHoveredPlayer;
+        if (!playerJson) continue;
+        let player;
+        try { player = JSON.parse(playerJson); } catch { continue; }
+
         chrome.runtime.sendMessage({ type: 'GET_POSITION_OVRS', player })
           .then(response => {
             if (response?.ovrs && node.isConnected) {
