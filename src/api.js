@@ -62,11 +62,17 @@ async function setFormation(clubId, squadId, formation, token) {
   });
 }
 
+// Get all clubs for the authenticated user
+async function fetchMyClubs(token, walletAddress) {
+  return apiFetch(`/clubs?walletAddress=${walletAddress}`, token);
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { fetchClub, fetchPlayers, fetchFormation, setFormation };
+  module.exports = { fetchClub, fetchPlayers, fetchFormation, setFormation, fetchMyClubs };
 } else {
   globalThis.fetchClub = fetchClub;
   globalThis.fetchPlayers = fetchPlayers;
   globalThis.fetchFormation = fetchFormation;
   globalThis.setFormation = setFormation;
+  globalThis.fetchMyClubs = fetchMyClubs;
 }

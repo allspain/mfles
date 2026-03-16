@@ -1,23 +1,19 @@
 // src/tactics.js
 
 /**
- * Apply optimizer swaps to a formation object.
- * The formation's `positions` array contains { index, playerId, captain } objects.
- * Replaces the `playerId` of the `out` player with the `in` player's id.
+ * Apply a new assignment to a formation object.
+ * newAssignment maps slotIndex → { id } (player object with at least an id).
+ * Returns a deep clone with updated playerIds.
  *
  * @param {Object} formation - Raw formation from MFL API
- * @param {Array} swaps - Array of { out: { id }, in: { id } }
- * @returns {Object} New formation object with swaps applied
+ * @param {Object} newAssignment - { [slotIndex]: { id, ... } }
+ * @returns {Object} New formation with updated playerIds
  */
-function applySwaps(formation, swaps) {
+function applySwaps(formation, newAssignment) {
   const newFormation = JSON.parse(JSON.stringify(formation));
-  for (const swap of swaps) {
-    const slot = (newFormation.positions || []).find(p => p.playerId === swap.out.id);
-    if (!slot) {
-      console.warn('[MFLES] applySwaps: player', swap.out.id, 'not found in formation — skipping swap');
-      continue;
-    }
-    slot.playerId = swap.in.id;
+  for (const slot of newFormation.positions) {
+    const assigned = newAssignment[slot.index];
+    if (assigned != null) slot.playerId = assigned.id;
   }
   return newFormation;
 }

@@ -1,7 +1,7 @@
 // tests/api.test.js
 global.fetch = jest.fn();
 
-const { fetchClub, fetchPlayers, fetchFormation, setFormation } = require('../src/api');
+const { fetchClub, fetchPlayers, fetchFormation, setFormation, fetchMyClubs } = require('../src/api');
 
 const TOKEN = 'Bearer test-token-123';
 const CLUB_ID = '7338';
@@ -60,6 +60,29 @@ describe('fetchFormation', () => {
   test('throws on non-ok response', async () => {
     fetch.mockResolvedValueOnce({ ok: false, status: 401 });
     await expect(fetchFormation(CLUB_ID, SQUAD_ID, TOKEN)).rejects.toThrow('401');
+  });
+});
+
+describe('fetchMyClubs', () => {
+  beforeEach(() => { global.fetch = jest.fn(); });
+  afterEach(() => { jest.resetAllMocks(); });
+
+  test('calls /clubs?walletAddress= with Authorization header', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ([{ club: { id: 1, name: 'FC Test', squads: [] } }]),
+    });
+    const result = await fetchMyClubs('Bearer tok123', '0xabc');
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/clubs?walletAddress=0xabc'),
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer tok123' }) })
+    );
+    expect(result).toEqual([{ club: { id: 1, name: 'FC Test', squads: [] } }]);
+  });
+
+  test('throws on non-ok response', async () => {
+    global.fetch.mockResolvedValueOnce({ ok: false, status: 401, text: async () => 'Unauthorized' });
+    await expect(fetchMyClubs('bad', '0xabc')).rejects.toThrow('401');
   });
 });
 
