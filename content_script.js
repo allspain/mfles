@@ -6,7 +6,7 @@
 // Listen for the token dispatched from fetch_interceptor.js (MAIN world)
 window.addEventListener('mfl_auth_token', (event) => {
   const { token } = event.detail;
-  chrome.runtime.sendMessage({ type: 'STORE_TOKEN', token });
+  try { chrome.runtime.sendMessage({ type: 'STORE_TOKEN', token }); } catch { /* context invalidated */ }
 });
 
 // ── Page detection ──────────────────────────────────────────────────
@@ -249,13 +249,17 @@ function setupTooltipObserver() {
         let player;
         try { player = JSON.parse(playerJson); } catch { continue; }
 
-        chrome.runtime.sendMessage({ type: 'GET_POSITION_OVRS', player })
-          .then(response => {
-            if (response?.ovrs && node.isConnected) {
-              augmentSvgWithOvrs(node, response.ovrs);
-            }
-          })
-          .catch(() => {}); // service worker may be sleeping; silently ignore
+        try {
+          chrome.runtime.sendMessage({ type: 'GET_POSITION_OVRS', player })
+            .then(response => {
+              if (response?.ovrs && node.isConnected) {
+                augmentSvgWithOvrs(node, response.ovrs);
+              }
+            })
+            .catch(() => {}); // service worker may be sleeping; silently ignore
+        } catch {
+          // Extension context invalidated (page outlived extension reload) — ignore
+        }
       }
     }
   }).observe(document.body, { childList: true });
