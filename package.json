@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "icons": "node scripts/generate-icons.js",
+    "package": "bash scripts/package.sh"
   },
   "devDependencies": {
     "jest": "^29.0.0",
