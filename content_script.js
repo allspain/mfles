@@ -6,7 +6,7 @@
 // Listen for the token dispatched from fetch_interceptor.js (MAIN world)
 window.addEventListener('mfl_auth_token', (event) => {
   const { token } = event.detail;
-  chrome.runtime.sendMessage({ type: 'STORE_TOKEN', token });
+  try { chrome.runtime.sendMessage({ type: 'STORE_TOKEN', token }); } catch { /* context invalidated */ }
 });
 
 // ── Page detection ──────────────────────────────────────────────────
@@ -164,11 +164,51 @@ new MutationObserver(() => {
   }
 }).observe(document, { subtree: true, childList: true });
 
+// ── Scouting inline position OVR display ────────────────────────────
+// fetch_interceptor.js (MAIN world) writes player JSON to each
+// .inline.cursor-help element's data-mfl-player attribute via fiber traversal.
+// We observe that attribute being set, then send GET_POSITION_OVRS and
+// replace the cell content with stacked pill chips.
+
+function augmentPositionCell(el) {
+  if (el.dataset.mflAugmented) return;
+  let player;
+  try { player = JSON.parse(el.dataset.mflPlayer); } catch { return; }
+  if (!player?.metadata?.positions) return;
+  el.dataset.mflAugmented = '1';
+  try {
+    chrome.runtime.sendMessage({ type: 'GET_POSITION_OVRS', player })
+      .then(response => {
+        if (!response?.ovrs || !el.isConnected) return;
+        el.style.cssText += 'display:inline-flex;flex-wrap:wrap;gap:3px;align-items:center;cursor:help';
+        el.innerHTML = player.metadata.positions.map(pos =>
+          `<span class="mfl-pos-chip"><span class="mfl-pos-chip__label">${pos}</span>` +
+          `<span class="mfl-pos-chip__ovr">${response.ovrs[pos] ?? ''}</span></span>`
+        ).join('');
+      })
+      .catch(() => {});
+  } catch { /* context invalidated */ }
+}
+
+function setupInlineOvrObserver() {
+  // Handle elements already written by fetch_interceptor.js
+  for (const el of document.querySelectorAll('.inline.cursor-help[data-mfl-player]')) {
+    augmentPositionCell(el);
+  }
+  // Watch for data-mfl-player being set (MAIN world writes it after fiber traversal)
+  new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      if (m.type === 'attributes' && m.attributeName === 'data-mfl-player') {
+        augmentPositionCell(m.target);
+      }
+    }
+  }).observe(document.body, { subtree: true, attributeFilter: ['data-mfl-player'] });
+}
+
 // ── Position OVR tooltip augmentation ───────────────────────────────
 // Player data is extracted in MAIN world (fetch_interceptor.js) via React
-// fiber traversal (fibers are not accessible from isolated world) and
-// dispatched here as a CustomEvent. This script handles messaging to
-// background for OVR computation and SVG DOM augmentation.
+// fiber traversal and written to document.body.dataset.mflHoveredPlayer —
+// a synchronous DOM write visible to this isolated world immediately.
 
 // Coordinate → position label for grey (no-affinity) circles.
 // Derived from MFL pitch SVG layout — fixed across all players/pages.
@@ -249,13 +289,18 @@ function setupTooltipObserver() {
         let player;
         try { player = JSON.parse(playerJson); } catch { continue; }
 
-        chrome.runtime.sendMessage({ type: 'GET_POSITION_OVRS', player })
-          .then(response => {
-            if (response?.ovrs && node.isConnected) {
-              augmentSvgWithOvrs(node, response.ovrs);
-            }
-          })
-          .catch(() => {}); // service worker may be sleeping; silently ignore
+<<<<<<< HEAD
+        try {
+          chrome.runtime.sendMessage({ type: 'GET_POSITION_OVRS', player })
+            .then(response => {
+              if (response?.ovrs && node.isConnected) {
+                augmentSvgWithOvrs(node, response.ovrs);
+              }
+            })
+            .catch(() => {}); // service worker may be sleeping; silently ignore
+        } catch {
+          // Extension context invalidated (page outlived extension reload) — ignore
+        }
       }
     }
   }).observe(document.body, { childList: true });
@@ -263,6 +308,10 @@ function setupTooltipObserver() {
 
 if (document.body) {
   setupTooltipObserver();
+  setupInlineOvrObserver();
 } else {
-  document.addEventListener('DOMContentLoaded', setupTooltipObserver);
+  document.addEventListener('DOMContentLoaded', () => {
+    setupTooltipObserver();
+    setupInlineOvrObserver();
+  });
 }
