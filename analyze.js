@@ -20,4 +20,32 @@ function chunkMessages(messages, size = 50) {
   return chunks;
 }
 
-module.exports = { filterMessages, chunkMessages };
+const SENTIMENT_RANK = { High: 2, Medium: 1, Low: 0 };
+
+function aggregateSuggestions(batches) {
+  const map = new Map();
+
+  for (const batch of batches) {
+    for (const s of batch) {
+      const key = s.title.toLowerCase().trim();
+      if (!map.has(key)) {
+        map.set(key, { ...s });
+      } else {
+        const existing = map.get(key);
+        existing.mention_count += s.mention_count;
+        existing.unique_requestors = Math.max(existing.unique_requestors, s.unique_requestors);
+        if (SENTIMENT_RANK[s.sentiment] > SENTIMENT_RANK[existing.sentiment]) {
+          existing.sentiment = s.sentiment;
+        }
+        const sentimentWeight = { High: 10, Medium: 5, Low: 0 }[existing.sentiment];
+        const complexityPenalty = { High: 15, Medium: 7, Low: 0 }[existing.complexity];
+        existing.priority_score =
+          existing.mention_count * 2 + existing.unique_requestors * 3 + sentimentWeight - complexityPenalty;
+      }
+    }
+  }
+
+  return [...map.values()].sort((a, b) => b.priority_score - a.priority_score);
+}
+
+module.exports = { filterMessages, chunkMessages, aggregateSuggestions };

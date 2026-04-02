@@ -1,4 +1,4 @@
-const { filterMessages, chunkMessages } = require('./analyze');
+const { filterMessages, chunkMessages, aggregateSuggestions } = require('./analyze');
 
 describe('filterMessages', () => {
   test('removes bot messages', () => {
@@ -46,5 +46,74 @@ describe('chunkMessages', () => {
   test('returns single chunk when messages fit', () => {
     const msgs = Array.from({ length: 20 }, (_, i) => ({ id: i }));
     expect(chunkMessages(msgs, 50)).toHaveLength(1);
+  });
+});
+
+describe('aggregateSuggestions', () => {
+  const batch1 = [
+    {
+      title: 'Show OVR on squad page',
+      description: 'Display OVR ratings on squad page.',
+      mention_count: 8,
+      unique_requestors: 5,
+      sentiment: 'High',
+      complexity: 'Low',
+      tier: 'Free',
+      tier_rationale: 'Pure UI change.',
+      priority_score: 46,
+    },
+    {
+      title: 'Auto-optimize all clubs',
+      description: 'One-click optimizer for all clubs.',
+      mention_count: 6,
+      unique_requestors: 4,
+      sentiment: 'High',
+      complexity: 'High',
+      tier: 'Paid',
+      tier_rationale: 'Requires backend.',
+      priority_score: 19,
+    },
+  ];
+
+  const batch2 = [
+    {
+      title: 'Show OVR on squad page',
+      description: 'Display OVR ratings on squad page.',
+      mention_count: 4,
+      unique_requestors: 3,
+      sentiment: 'Medium',
+      complexity: 'Low',
+      tier: 'Free',
+      tier_rationale: 'Pure UI change.',
+      priority_score: 20,
+    },
+  ];
+
+  test('merges duplicate titles, summing mention_count', () => {
+    const result = aggregateSuggestions([batch1, batch2]);
+    const ovrFeature = result.find(s => s.title === 'Show OVR on squad page');
+    expect(ovrFeature.mention_count).toBe(12);
+  });
+
+  test('takes max unique_requestors for duplicates', () => {
+    const result = aggregateSuggestions([batch1, batch2]);
+    const ovrFeature = result.find(s => s.title === 'Show OVR on squad page');
+    expect(ovrFeature.unique_requestors).toBe(5);
+  });
+
+  test('takes highest sentiment for duplicates', () => {
+    const result = aggregateSuggestions([batch1, batch2]);
+    const ovrFeature = result.find(s => s.title === 'Show OVR on squad page');
+    expect(ovrFeature.sentiment).toBe('High');
+  });
+
+  test('sorts by priority_score descending', () => {
+    const result = aggregateSuggestions([batch1, batch2]);
+    expect(result[0].priority_score).toBeGreaterThanOrEqual(result[1].priority_score);
+  });
+
+  test('preserves non-duplicate entries', () => {
+    const result = aggregateSuggestions([batch1, batch2]);
+    expect(result).toHaveLength(2);
   });
 });
