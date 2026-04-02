@@ -1,3 +1,11 @@
 mfl-enhancement-suite.zip
 node_modules/
 .worktrees/
+
+# Remotion video assets (large binaries)
+video/public/recordings/
+video/public/music.mp3
+video/out/
+
+suggestions.json
+roadmap.md
