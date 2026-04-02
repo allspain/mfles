@@ -1,5 +1,7 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const Anthropic = require('@anthropic-ai/sdk');
 const client = new Anthropic(); // reads ANTHROPIC_API_KEY from env
 
@@ -36,7 +38,7 @@ function aggregateSuggestions(batches) {
       } else {
         const existing = map.get(key);
         existing.mention_count += s.mention_count;
-        existing.unique_requestors = Math.max(existing.unique_requestors, s.unique_requestors);
+        existing.unique_requestors += s.unique_requestors;
         if (SENTIMENT_RANK[s.sentiment] > SENTIMENT_RANK[existing.sentiment]) {
           existing.sentiment = s.sentiment;
         }
@@ -104,19 +106,20 @@ Return ONLY a JSON array of suggestion objects. No markdown, no explanation, no 
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: systemPrompt,
     messages: [{ role: 'user', content: transcript }],
   });
 
-  const text = response.content[0].text.trim();
-  return JSON.parse(text);
+  let text = response.content[0].text.trim();
+  // Strip markdown fences if Claude wraps output despite instructions
+  text = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+  const parsed = JSON.parse(text);
+  if (!Array.isArray(parsed)) throw new Error('Claude returned non-array response');
+  return parsed;
 }
 
 async function main() {
-  const fs = require('fs');
-  const path = require('path');
-
   const exportPath = path.join(__dirname, 'suggestions.json');
   if (!fs.existsSync(exportPath)) {
     console.error('Error: suggestions.json not found. Run DiscordChatExporter first.');

@@ -95,10 +95,10 @@ describe('aggregateSuggestions', () => {
     expect(ovrFeature.mention_count).toBe(12);
   });
 
-  test('takes max unique_requestors for duplicates', () => {
+  test('sums unique_requestors across batches', () => {
     const result = aggregateSuggestions([batch1, batch2]);
     const ovrFeature = result.find(s => s.title === 'Show OVR on squad page');
-    expect(ovrFeature.unique_requestors).toBe(5);
+    expect(ovrFeature.unique_requestors).toBe(8); // 5 + 3
   });
 
   test('takes highest sentiment for duplicates', () => {
