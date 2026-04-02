@@ -48,4 +48,26 @@ function aggregateSuggestions(batches) {
   return [...map.values()].sort((a, b) => b.priority_score - a.priority_score);
 }
 
-module.exports = { filterMessages, chunkMessages, aggregateSuggestions };
+function formatRoadmap(suggestions) {
+  const date = new Date().toISOString().split('T')[0];
+  const lines = [
+    '# MFL Enhancement Suite — Community Roadmap',
+    `_Generated from Discord #suggestions — ${date}_`,
+    '',
+    '## Implementation Priority',
+    '',
+  ];
+
+  suggestions.forEach((s, i) => {
+    lines.push(`### #${i + 1} — ${s.title} [${s.tier.toUpperCase()}]`);
+    lines.push(`- Mentions: ${s.mention_count} | Unique requestors: ${s.unique_requestors} | Sentiment: ${s.sentiment} | Complexity: ${s.complexity}`);
+    lines.push(`- Priority score: ${s.priority_score}`);
+    lines.push(`- ${s.description}`);
+    lines.push(`- Tier rationale: ${s.tier_rationale}`);
+    lines.push('');
+  });
+
+  return lines.join('\n');
+}
+
+module.exports = { filterMessages, chunkMessages, aggregateSuggestions, formatRoadmap };

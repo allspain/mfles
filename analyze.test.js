@@ -1,4 +1,4 @@
-const { filterMessages, chunkMessages, aggregateSuggestions } = require('./analyze');
+const { filterMessages, chunkMessages, aggregateSuggestions, formatRoadmap } = require('./analyze');
 
 describe('filterMessages', () => {
   test('removes bot messages', () => {
@@ -115,5 +115,46 @@ describe('aggregateSuggestions', () => {
   test('preserves non-duplicate entries', () => {
     const result = aggregateSuggestions([batch1, batch2]);
     expect(result).toHaveLength(2);
+  });
+});
+
+describe('formatRoadmap', () => {
+  const suggestions = [
+    {
+      title: 'Show OVR on squad page',
+      description: 'Display OVR ratings directly on the squad management page.',
+      mention_count: 12,
+      unique_requestors: 5,
+      sentiment: 'High',
+      complexity: 'Low',
+      tier: 'Free',
+      tier_rationale: 'Pure UI change, zero backend.',
+      priority_score: 71,
+    },
+  ];
+
+  test('includes ranked heading with tier tag', () => {
+    const md = formatRoadmap(suggestions);
+    expect(md).toContain('### #1 — Show OVR on squad page [FREE]');
+  });
+
+  test('includes metrics line', () => {
+    const md = formatRoadmap(suggestions);
+    expect(md).toContain('Mentions: 12 | Unique requestors: 5 | Sentiment: High | Complexity: Low');
+  });
+
+  test('includes priority score', () => {
+    const md = formatRoadmap(suggestions);
+    expect(md).toContain('Priority score: 71');
+  });
+
+  test('includes description', () => {
+    const md = formatRoadmap(suggestions);
+    expect(md).toContain('Display OVR ratings directly on the squad management page.');
+  });
+
+  test('includes tier rationale', () => {
+    const md = formatRoadmap(suggestions);
+    expect(md).toContain('Pure UI change, zero backend.');
   });
 });
