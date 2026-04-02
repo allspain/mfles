@@ -1,4 +1,4 @@
-const { filterMessages } = require('./analyze');
+const { filterMessages, chunkMessages } = require('./analyze');
 
 describe('filterMessages', () => {
   test('removes bot messages', () => {
@@ -30,5 +30,21 @@ describe('filterMessages', () => {
       { author: { isBot: false }, content: 'Please add lineup history so I can compare previous weeks' },
     ];
     expect(filterMessages(msgs)).toHaveLength(1);
+  });
+});
+
+describe('chunkMessages', () => {
+  test('splits messages into chunks of given size', () => {
+    const msgs = Array.from({ length: 130 }, (_, i) => ({ id: i }));
+    const chunks = chunkMessages(msgs, 50);
+    expect(chunks).toHaveLength(3);
+    expect(chunks[0]).toHaveLength(50);
+    expect(chunks[1]).toHaveLength(50);
+    expect(chunks[2]).toHaveLength(30);
+  });
+
+  test('returns single chunk when messages fit', () => {
+    const msgs = Array.from({ length: 20 }, (_, i) => ({ id: i }));
+    expect(chunkMessages(msgs, 50)).toHaveLength(1);
   });
 });

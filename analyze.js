@@ -12,4 +12,12 @@ function filterMessages(messages) {
   });
 }
 
-module.exports = { filterMessages };
+function chunkMessages(messages, size = 50) {
+  const chunks = [];
+  for (let i = 0; i < messages.length; i += size) {
+    chunks.push(messages.slice(i, i + size));
+  }
+  return chunks;
+}
+
+module.exports = { filterMessages, chunkMessages };
