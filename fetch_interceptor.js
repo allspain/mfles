@@ -55,25 +55,32 @@
     const fiberKey = Object.keys(el).find(k => k.startsWith('__reactFiber'));
     if (!fiberKey) return null;
     let fiber = el[fiberKey];
+    let rowId = null;
     while (fiber) {
       const props = fiber.memoizedProps;
       if (props?.row?.metadata?.positions) return props.row;
       if (props?.player?.metadata?.positions) return props.player;
+      // rdg tactics table: row data may nest the player object
+      if (props?.row?.player?.metadata?.positions) return props.row.player;
+      // Capture row id for tactics store fallback
+      if (props?.row?.id && !rowId) rowId = props.row.id;
       fiber = fiber.return;
     }
+    // Fallback: look up by row id in the tactics playersListStore
+    if (rowId) return getPlayerFromTacticsStore(rowId);
     return null;
   }
 
   // ── Inline position OVR display ─────────────────────────────────────
-  // Write player data to each .inline.cursor-help element's dataset so the
+  // Write player data to each position cell's dataset so the
   // isolated world content script can read it without fiber traversal.
-  function writePlayerData(el) {
-    if (el.dataset.mflPlayer) return;
-    // Only position cells — text is exclusively uppercase 2-3 letter codes e.g. "LB, LWB, LM"
-    if (!/^[A-Z]{2,3}(,\s*[A-Z]{2,3})*$/.test(el.textContent.trim())) return;
-    const player = getPlayerFromRowFiber(el);
-    if (!player?.metadata?.positions) return;
-    el.dataset.mflPlayer = JSON.stringify({
+  // Targets both scouting page (.inline.cursor-help) and tactics page
+  // (PlayersTable rdg cells) position elements.
+
+  const POS_RE = /^[A-Z]{2,3}(,\s*[A-Z]{2,3})*$/;
+
+  function serializePlayer(player) {
+    return JSON.stringify({
       id: player.id,
       metadata: {
         positions: player.metadata.positions,
@@ -88,16 +95,33 @@
     });
   }
 
+  function writePlayerData(el) {
+    if (el.dataset.mflPlayer) return;
+    // Only position cells — text is exclusively uppercase 2-3 letter codes e.g. "LB, LWB, LM"
+    if (!POS_RE.test(el.textContent.trim())) return;
+    const player = getPlayerFromRowFiber(el);
+    if (!player?.metadata?.positions) return;
+    el.dataset.mflPlayer = serializePlayer(player);
+  }
+
+  // Scouting + tactics page selectors for position text cells
+  const POSITION_CELL_SELECTOR = '.inline.cursor-help, [class*="PlayersTable_cell"]';
+
+  function isPositionCell(node) {
+    if (node.nodeType !== 1) return false;
+    if (node.classList?.contains('inline') && node.classList?.contains('cursor-help')) return true;
+    if (typeof node.className === 'string' && node.className.includes('PlayersTable_cell')) return true;
+    return false;
+  }
+
   function setupPlayerDataWriter() {
-    for (const el of document.querySelectorAll('.inline.cursor-help')) writePlayerData(el);
+    for (const el of document.querySelectorAll(POSITION_CELL_SELECTOR)) writePlayerData(el);
     new MutationObserver((mutations) => {
       for (const m of mutations) {
         for (const node of m.addedNodes) {
           if (node.nodeType !== 1) continue;
-          if (node.classList?.contains('inline') && node.classList?.contains('cursor-help')) {
-            writePlayerData(node);
-          }
-          for (const el of (node.querySelectorAll?.('.inline.cursor-help') ?? [])) {
+          if (isPositionCell(node)) writePlayerData(node);
+          for (const el of (node.querySelectorAll?.(POSITION_CELL_SELECTOR) ?? [])) {
             writePlayerData(el);
           }
         }

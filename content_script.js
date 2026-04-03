@@ -66,9 +66,12 @@ function injectOptimizeButton() {
         ? `${response.swaps.length} swap${response.swaps.length !== 1 ? 's' : ''} made`
         : `${suspended.length} suspended`;
       setButtonState('success', label);
-      renderSwapSummary(panel, response.swaps, response.warnings || [], suspended);
-      // Trigger Next.js soft navigation to refresh the formation display
+      // Refresh the pitch first, then show swap summary once the page settles
       window.dispatchEvent(new CustomEvent('mfl_refresh_ui'));
+      setTimeout(() => {
+        const p = document.getElementById('mfl-panel') || panel;
+        renderSwapSummary(p, response.swaps, response.warnings || [], suspended);
+      }, 1500);
     }
   });
 }
@@ -142,11 +145,12 @@ function removeOptimizeButton() {
   document.getElementById('mfl-panel')?.remove();
 }
 
-// ── Scouting inline position OVR display ────────────────────────────
-// fetch_interceptor.js (MAIN world) writes player JSON to each
-// .inline.cursor-help element's data-mfl-player attribute via fiber traversal.
-// We observe that attribute being set, then send GET_POSITION_OVRS and
-// replace the cell content with stacked pill chips.
+// ── Inline position OVR display ──────────────────────────────────────
+// fetch_interceptor.js (MAIN world) writes player JSON to each position
+// cell's data-mfl-player attribute via fiber traversal.  Targets both
+// scouting page (.inline.cursor-help) and tactics page (PlayersTable rdg
+// cells).  We observe that attribute being set, then send GET_POSITION_OVRS
+// and replace the cell content with stacked pill chips.
 
 function augmentPositionCell(el) {
   if (el.dataset.mflAugmented) return;
@@ -169,8 +173,8 @@ function augmentPositionCell(el) {
 }
 
 function setupInlineOvrObserver() {
-  // Handle elements already written by fetch_interceptor.js
-  for (const el of document.querySelectorAll('.inline.cursor-help[data-mfl-player]')) {
+  // Handle elements already written by fetch_interceptor.js (scouting + tactics)
+  for (const el of document.querySelectorAll('[data-mfl-player]')) {
     augmentPositionCell(el);
   }
   // Watch for data-mfl-player being set (MAIN world writes it after fiber traversal)
