@@ -61,19 +61,19 @@ describe('loadSettings', () => {
   });
 
   test('merges a new param from registry into existing feature', async () => {
-    // Simulate a feature stored without a param that now exists in registry
     _stored['mfles_settings'] = {
       schemaVersion: 1,
       features: { lineupOptimizer: { enabled: true } }
     };
-    // Temporarily add a param to the registry
-    FEATURES.find(f => f.id === 'lineupOptimizer').params = [
-      { key: 'energyThreshold', default: 50 }
-    ];
-    const settings = await loadSettings();
-    expect(settings.features.lineupOptimizer.energyThreshold).toBe(50);
-    // Restore registry state
-    FEATURES.find(f => f.id === 'lineupOptimizer').params = [];
+    const feature = FEATURES.find(f => f.id === 'lineupOptimizer');
+    const originalParams = feature.params;
+    try {
+      feature.params = [{ key: 'energyThreshold', default: 50 }];
+      const settings = await loadSettings();
+      expect(settings.features.lineupOptimizer.energyThreshold).toBe(50);
+    } finally {
+      feature.params = originalParams;
+    }
   });
 
   test('runs a pending migration and bumps schemaVersion', async () => {

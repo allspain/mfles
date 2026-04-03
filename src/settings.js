@@ -25,7 +25,7 @@ async function loadSettings() {
     if (!settings.features[feature.id]) {
       settings.features[feature.id] = { enabled: feature.defaultEnabled };
     }
-    for (const param of feature.params) {
+    for (const param of (feature.params || [])) {
       if (!(param.key in settings.features[feature.id])) {
         settings.features[feature.id][param.key] = param.default;
       }
