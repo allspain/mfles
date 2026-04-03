@@ -93,8 +93,8 @@ function collectSettings(currentSettings) {
     if (!feature || feature.tier === 'pro') continue;
 
     const checkbox = featureEl.querySelector(`#toggle-${id}`);
-    currentSettings.features[id] = currentSettings.features[id] || {};
-    currentSettings.features[id].enabled = checkbox.checked;
+    const existing = currentSettings.features[id] || {};
+    currentSettings.features[id] = { ...existing, enabled: checkbox.checked };
 
     for (const param of (feature.params || [])) {
       const paramRow = featureEl.querySelector(`[data-param-key="${param.key}"]`);
