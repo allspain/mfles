@@ -41,6 +41,46 @@ const FORMATION_SLOT_POSITIONS = {
   '5-4-1_flat':       {0:'GK',1:'RWB',2:'CB',3:'CB',4:'CB',5:'LWB',6:'RM',7:'CM',8:'CM',9:'LM',10:'ST'},
 };
 
+// ── Demo mode — runs the real optimizer against hardcoded mock squad ─
+// Triggered when the message sender is the Firebase demo site or localhost.
+// No auth token or MFL API calls needed.
+const DEMO_PLAYERS = [
+  { id: 1001, energy: 97, name: 'André Onana',        playerObj: { metadata: { positions: ['GK'],              pace: 62, shooting: 20, passing: 58, dribbling: 35, defense: 18, physical: 78, goalkeeping: 86 } } },
+  { id: 1002, energy: 98, name: 'Aaron Wan-Bissaka',  playerObj: { metadata: { positions: ['RB', 'RWB'],       pace: 82, shooting: 42, passing: 61, dribbling: 77, defense: 78, physical: 72, goalkeeping:  9 } } },
+  { id: 1003, energy: 92, name: 'Harry Maguire',      playerObj: { metadata: { positions: ['CB'],              pace: 67, shooting: 45, passing: 63, dribbling: 52, defense: 82, physical: 85, goalkeeping: 12 } } },
+  { id: 1004, energy: 84, name: 'Raphaël Varane',     playerObj: { metadata: { positions: ['CB'],              pace: 78, shooting: 44, passing: 68, dribbling: 58, defense: 88, physical: 83, goalkeeping: 13 } } },
+  { id: 1005, energy: 75, name: 'Luke Shaw',          playerObj: { metadata: { positions: ['LB', 'LWB'],      pace: 79, shooting: 58, passing: 72, dribbling: 74, defense: 75, physical: 73, goalkeeping:  8 } } },
+  { id: 1006, energy: 93, name: 'Casemiro',           playerObj: { metadata: { positions: ['CDM', 'CM'],      pace: 64, shooting: 72, passing: 76, dribbling: 67, defense: 88, physical: 86, goalkeeping: 12 } } },
+  { id: 1007, energy: 91, name: 'Scott McTominay',    playerObj: { metadata: { positions: ['CM', 'CDM'],      pace: 68, shooting: 71, passing: 73, dribbling: 66, defense: 76, physical: 82, goalkeeping: 11 } } },
+  { id: 1008, energy: 87, name: 'Bruno Fernandes',    playerObj: { metadata: { positions: ['CAM', 'CM'],      pace: 73, shooting: 81, passing: 88, dribbling: 84, defense: 56, physical: 72, goalkeeping: 10 } } },
+  { id: 1009, energy: 68, name: 'Jadon Sancho',       playerObj: { metadata: { positions: ['RW', 'LW'],       pace: 87, shooting: 78, passing: 77, dribbling: 91, defense: 38, physical: 64, goalkeeping:  8 } } },
+  { id: 1010, energy: 95, name: 'Marcus Rashford',    playerObj: { metadata: { positions: ['LW', 'ST'],       pace: 89, shooting: 82, passing: 75, dribbling: 88, defense: 35, physical: 72, goalkeeping:  8 } } },
+  { id: 1011, energy: 94, name: 'Rasmus Højlund',     playerObj: { metadata: { positions: ['ST', 'CF'],       pace: 84, shooting: 79, passing: 65, dribbling: 78, defense: 28, physical: 75, goalkeeping:  9 } } },
+  { id: 1012, energy: 72, name: 'Mason Mount',        playerObj: { metadata: { positions: ['CM', 'CAM', 'LW'], pace: 76, shooting: 77, passing: 81, dribbling: 83, defense: 58, physical: 71, goalkeeping:  9 } } },
+  { id: 1013, energy: 96, name: 'Alejandro Garnacho', playerObj: { metadata: { positions: ['LW', 'RW'],       pace: 88, shooting: 74, passing: 69, dribbling: 86, defense: 32, physical: 65, goalkeeping:  7 } } },
+  { id: 1014, energy: 52, name: 'Antony',             playerObj: { metadata: { positions: ['RW', 'LW'],       pace: 85, shooting: 75, passing: 68, dribbling: 87, defense: 35, physical: 65, goalkeeping:  8 } } },
+  { id: 1015, energy: 98, name: 'Tom Heaton',         playerObj: { metadata: { positions: ['GK'],              pace: 45, shooting: 18, passing: 48, dribbling: 28, defense: 15, physical: 72, goalkeeping: 76 } } },
+];
+
+const DEMO_FORMATION_SLOTS = [
+  { index: 0,  playerId: 1001, captain: false, position: 'GK'  },
+  { index: 1,  playerId: 1002, captain: false, position: 'RB'  },
+  { index: 2,  playerId: 1003, captain: false, position: 'CB'  },
+  { index: 3,  playerId: 1004, captain: false, position: 'CB'  },
+  { index: 4,  playerId: 1005, captain: false, position: 'LB'  },
+  { index: 5,  playerId: 1006, captain: false, position: 'CM'  },
+  { index: 6,  playerId: 1008, captain: false, position: 'CAM' },
+  { index: 7,  playerId: 1007, captain: false, position: 'CM'  },
+  { index: 8,  playerId: 1009, captain: false, position: 'RW'  },
+  { index: 9,  playerId: 1011, captain: false, position: 'ST'  },
+  { index: 10, playerId: 1010, captain: false, position: 'LW'  },
+];
+
+function handleDemoOptimize() {
+  const { swaps, warnings } = optimizeLineup(DEMO_PLAYERS, DEMO_FORMATION_SLOTS);
+  return { success: true, swaps, warnings, suspendedStarters: [] };
+}
+
 // ── JWT helper ───────────────────────────────────────────────────────
 function walletFromToken(token) {
   try {
@@ -60,6 +100,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'OPTIMIZE_LINEUP') {
+    const isDemoOrigin = sender?.origin === 'https://mfl-es.web.app' ||
+                         sender?.origin?.startsWith('http://localhost:');
+    if (isDemoOrigin) {
+      sendResponse(handleDemoOptimize());
+      return;
+    }
     handleOptimize(message.clubId, message.assignment).then(sendResponse);
     return true; // keep channel open for async response
   }

@@ -1,9 +1,10 @@
 'use strict';
 
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const Anthropic = require('@anthropic-ai/sdk');
-const client = new Anthropic(); // reads ANTHROPIC_API_KEY from env
+const OpenAI = require('openai');
+const client = new OpenAI(); // reads OPENAI_API_KEY from env
 
 const EMOJI_ONLY_RE = /^[\p{Emoji}\s]+$/u;
 
@@ -104,25 +105,27 @@ Tier assignment rules:
 
 Return ONLY a JSON array of suggestion objects. No markdown, no explanation, no preamble.`;
 
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-6',
+  const response = await client.chat.completions.create({
+    model: 'gpt-4o',
     max_tokens: 8192,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: transcript }],
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: transcript },
+    ],
   });
 
-  let text = response.content[0].text.trim();
-  // Strip markdown fences if Claude wraps output despite instructions
+  let text = response.choices[0].message.content.trim();
+  // Strip markdown fences if model wraps output despite instructions
   text = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
   const parsed = JSON.parse(text);
-  if (!Array.isArray(parsed)) throw new Error('Claude returned non-array response');
+  if (!Array.isArray(parsed)) throw new Error('Model returned non-array response');
   return parsed;
 }
 
 async function main() {
   const exportPath = path.join(__dirname, 'suggestions.json');
   if (!fs.existsSync(exportPath)) {
-    console.error('Error: suggestions.json not found. Run DiscordChatExporter first.');
+    console.error('Error: suggestions.json not found. Run fetch-discord.js first.');
     process.exit(1);
   }
 

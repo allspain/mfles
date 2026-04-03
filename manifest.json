@@ -27,13 +27,13 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://app.playmfl.com/*"],
+      "matches": ["https://app.playmfl.com/*", "https://mfl-es.web.app/*"],
       "js": ["fetch_interceptor.js"],
       "world": "MAIN",
       "run_at": "document_start"
     },
     {
-      "matches": ["https://app.playmfl.com/*"],
+      "matches": ["https://app.playmfl.com/*", "https://mfl-es.web.app/*"],
       "js": ["content_script.js"],
       "css": ["styles.css"],
       "run_at": "document_idle"

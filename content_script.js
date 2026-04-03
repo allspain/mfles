@@ -289,7 +289,6 @@ function setupTooltipObserver() {
         let player;
         try { player = JSON.parse(playerJson); } catch { continue; }
 
-<<<<<<< HEAD
         try {
           chrome.runtime.sendMessage({ type: 'GET_POSITION_OVRS', player })
             .then(response => {
