@@ -137,32 +137,10 @@ function renderSwapSummary(panel, swaps, warnings, suspendedStarters) {
   setTimeout(() => panel.classList.add('mfl-hidden'), 8000);
 }
 
-if (onTacticsPage()) {
-  injectOptimizeButton();
-}
-
 function removeOptimizeButton() {
   document.getElementById('mfl-optimize-btn')?.remove();
   document.getElementById('mfl-panel')?.remove();
 }
-
-// Handle SPA navigation and button removal (React rerenders can detach body children)
-let lastUrl = location.href;
-new MutationObserver(() => {
-  // Handle URL change
-  if (location.href !== lastUrl) {
-    lastUrl = location.href;
-    if (onTacticsPage()) {
-      setTimeout(injectOptimizeButton, 500);
-    } else {
-      removeOptimizeButton();
-    }
-  }
-  // Reinject if button was removed while still on tactics page
-  if (onTacticsPage() && !document.getElementById('mfl-optimize-btn')) {
-    injectOptimizeButton();
-  }
-}).observe(document, { subtree: true, childList: true });
 
 // ── Scouting inline position OVR display ────────────────────────────
 // fetch_interceptor.js (MAIN world) writes player JSON to each
@@ -305,12 +283,40 @@ function setupTooltipObserver() {
   }).observe(document.body, { childList: true });
 }
 
-if (document.body) {
-  setupTooltipObserver();
-  setupInlineOvrObserver();
-} else {
-  document.addEventListener('DOMContentLoaded', () => {
+// ── Initialization — settings-aware ──────────────────────────────────
+(async () => {
+  let settings;
+  try {
+    settings = await loadSettings();
+  } catch (err) {
+    console.error('[MFLES] Failed to load settings, enabling all features:', err);
+    settings = {
+      features: {
+        lineupOptimizer: { enabled: true },
+        positionOvr:     { enabled: true },
+      }
+    };
+  }
+
+  // Feature: Lineup Optimizer
+  if (settings.features.lineupOptimizer.enabled) {
+    if (onTacticsPage()) injectOptimizeButton();
+
+    let lastUrl = location.href;
+    new MutationObserver(() => {
+      if (location.href !== lastUrl) {
+        lastUrl = location.href;
+        if (onTacticsPage()) setTimeout(injectOptimizeButton, 500);
+        else removeOptimizeButton();
+      } else if (onTacticsPage() && !document.getElementById('mfl-optimize-btn')) {
+        injectOptimizeButton();
+      }
+    }).observe(document, { subtree: true, childList: true });
+  }
+
+  // Feature: Position OVR
+  if (settings.features.positionOvr.enabled) {
     setupTooltipObserver();
     setupInlineOvrObserver();
-  });
-}
+  }
+})();

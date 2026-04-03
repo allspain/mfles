@@ -3,10 +3,6 @@
 
 importScripts('src/scorer.js', 'src/positions.js', 'src/optimizer.js', 'src/api.js', 'src/tactics.js');
 
-chrome.action.onClicked.addListener(() => {
-  chrome.tabs.create({ url: chrome.runtime.getURL('teams.html') });
-});
-
 // ── Canonical slot positions per formation type ───────────────────────
 // Extracted from MFL app webpack bundle (module 57461).
 // Used so the optimizer evaluates each slot at its true position role,

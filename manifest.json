@@ -16,6 +16,7 @@
   ],
   "action": {
     "default_title": "MFL Enhancement Suite",
+    "default_popup": "popup.html",
     "default_icon": {
       "16":  "icons/16.png",
       "48":  "icons/48.png",
@@ -34,7 +35,13 @@
     },
     {
       "matches": ["https://app.playmfl.com/*", "https://mfl-es.web.app/*"],
-      "js": ["content_script.js"],
+      "js": [
+        "src/features.js",
+        "src/migrations.js",
+        "src/settings-sync.js",
+        "src/settings.js",
+        "content_script.js"
+      ],
       "css": ["styles.css"],
       "run_at": "document_idle"
     }
