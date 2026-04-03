@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 280px;
+      background: #0f1923;
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 14px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #1e2d3d;
+    }
+    .logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+    }
+    .title {
+      color: #e6edf3;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 9px 12px;
+      margin-bottom: 8px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #e6edf3;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn:last-child { margin-bottom: 0; }
+    .btn:hover {
+      background: #1a2f1a;
+      border-color: #3fb950;
+      color: #3fb950;
+    }
+    .btn--secondary { font-weight: 400; color: #8b949e; }
+    .btn--secondary:hover { color: #3fb950; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img class="logo" src="icons/48.png" alt="">
+    <span class="title">MFL Enhancement Suite</span>
+  </div>
+  <button class="btn" id="btn-optimize">⚡ Optimize All Teams</button>
+  <button class="btn btn--secondary" id="btn-settings">⚙ Settings</button>
+  <script src="popup.js"></script>
+</body>
+</html>
