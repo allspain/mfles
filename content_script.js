@@ -285,7 +285,18 @@ function setupTooltipObserver() {
 
 // ── Initialization — settings-aware ──────────────────────────────────
 (async () => {
-  const settings = await loadSettings();
+  let settings;
+  try {
+    settings = await loadSettings();
+  } catch (err) {
+    console.error('[MFLES] Failed to load settings, enabling all features:', err);
+    settings = {
+      features: {
+        lineupOptimizer: { enabled: true },
+        positionOvr:     { enabled: true },
+      }
+    };
+  }
 
   // Feature: Lineup Optimizer
   if (settings.features.lineupOptimizer.enabled) {
@@ -297,8 +308,7 @@ function setupTooltipObserver() {
         lastUrl = location.href;
         if (onTacticsPage()) setTimeout(injectOptimizeButton, 500);
         else removeOptimizeButton();
-      }
-      if (onTacticsPage() && !document.getElementById('mfl-optimize-btn')) {
+      } else if (onTacticsPage() && !document.getElementById('mfl-optimize-btn')) {
         injectOptimizeButton();
       }
     }).observe(document, { subtree: true, childList: true });
@@ -306,14 +316,7 @@ function setupTooltipObserver() {
 
   // Feature: Position OVR
   if (settings.features.positionOvr.enabled) {
-    if (document.body) {
-      setupTooltipObserver();
-      setupInlineOvrObserver();
-    } else {
-      document.addEventListener('DOMContentLoaded', () => {
-        setupTooltipObserver();
-        setupInlineOvrObserver();
-      });
-    }
+    setupTooltipObserver();
+    setupInlineOvrObserver();
   }
 })();
