@@ -34,8 +34,14 @@
       "run_at": "document_start"
     },
     {
-      "matches": ["https://app.playmfl.com/*"],
-      "js": ["content_script.js"],
+      "matches": ["https://app.playmfl.com/*", "https://mfl-es.web.app/*"],
+      "js": [
+        "src/features.js",
+        "src/migrations.js",
+        "src/settings-sync.js",
+        "src/settings.js",
+        "content_script.js"
+      ],
       "css": ["styles.css"],
       "run_at": "document_idle"
     }

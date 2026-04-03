@@ -13,6 +13,10 @@ zip -r "$OUT" \
   content_script.js \
   fetch_interceptor.js \
   styles.css \
+  popup.html \
+  popup.js \
+  settings.html \
+  settings.js \
   src/ \
   icons/ \
   teams.html \
