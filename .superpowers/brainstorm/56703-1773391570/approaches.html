@@ -1,0 +1,96 @@
+<h2>3 Layout Approaches for the All-Teams Page</h2>
+<p class="subtitle">Each opens as a full browser tab from the extension icon. Which feels right?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Vertical Squad Cards</h3>
+      <p>All squads listed as tall cards down the page. Each card shows the squad name, current OVR, the optimizer's pick with its OVR, and 5 alternatives — all visible at once without any clicking. Apply button on each row.</p>
+      <div style="margin-top:12px;background:#1a1a2e;border-radius:8px;padding:12px;font-size:12px;color:#ccc;">
+        <div style="background:#16213e;border-radius:6px;padding:10px;margin-bottom:8px;">
+          <div style="color:#4fc3f7;font-weight:700;margin-bottom:6px;">FC Example · Current OVR: 847</div>
+          <div style="display:flex;gap:6px;flex-direction:column;">
+            <div style="display:flex;align-items:center;gap:8px;background:#0f3460;border-radius:4px;padding:6px 10px;">
+              <span style="color:#ffd700;font-size:10px;font-weight:700;">★ BEST</span>
+              <span style="color:#fff;flex:1">Optimizer Pick</span>
+              <span style="color:#4ade80;font-weight:700;">OVR 871</span>
+              <span style="background:#4ade80;color:#000;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;">Apply</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;background:#111;border-radius:4px;padding:6px 10px;">
+              <span style="color:#aaa;font-size:10px;">Alt 1</span>
+              <span style="color:#ccc;flex:1">Swap Vargas → Diaz</span>
+              <span style="color:#86efac;font-weight:700;">OVR 868</span>
+              <span style="background:#333;color:#ccc;border-radius:4px;padding:2px 8px;font-size:11px;">Apply</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;background:#111;border-radius:4px;padding:6px 10px;">
+              <span style="color:#aaa;font-size:10px;">Alt 2</span>
+              <span style="color:#ccc;flex:1">Swap Chen → Park</span>
+              <span style="color:#86efac;font-weight:700;">OVR 865</span>
+              <span style="background:#333;color:#ccc;border-radius:4px;padding:2px 8px;font-size:11px;">Apply</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Everything visible at once</li><li>No extra clicks</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Long scroll with many squads</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Squad Grid + Expandable Detail</h3>
+      <p>Squads shown as compact summary cards in a grid (2-3 per row), each showing current OVR and best possible OVR. Click a squad card to expand a detail panel below showing all 6 lineup options.</p>
+      <div style="margin-top:12px;background:#1a1a2e;border-radius:8px;padding:12px;font-size:12px;color:#ccc;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+          <div style="background:#16213e;border-radius:6px;padding:10px;border:2px solid #4fc3f7;">
+            <div style="color:#4fc3f7;font-weight:700;font-size:11px;">FC Example ▼</div>
+            <div style="color:#aaa;font-size:10px;">Current: 847 → Best: 871</div>
+            <div style="color:#4ade80;font-size:10px;">+24 OVR possible</div>
+          </div>
+          <div style="background:#16213e;border-radius:6px;padding:10px;">
+            <div style="color:#ccc;font-weight:700;font-size:11px;">United FC</div>
+            <div style="color:#aaa;font-size:10px;">Current: 812 → Best: 829</div>
+            <div style="color:#4ade80;font-size:10px;">+17 OVR possible</div>
+          </div>
+        </div>
+        <div style="background:#0f3460;border-radius:6px;padding:10px;">
+          <div style="color:#4fc3f7;font-size:10px;font-weight:700;margin-bottom:4px;">FC Example — Lineup Options</div>
+          <div style="color:#aaa;font-size:10px;">★ Optimizer Pick · OVR 871 · [Apply]</div>
+          <div style="color:#666;font-size:10px;">Alt 1 · OVR 868 · [Apply]</div>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Compact overview of all squads</li><li>Easy to compare across clubs</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Extra click to see options</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Tabbed by Club</h3>
+      <p>Top-level tabs, one per club. Active tab shows all squads for that club with full lineup options. Good if you have many clubs and want focused per-club workflow.</p>
+      <div style="margin-top:12px;background:#1a1a2e;border-radius:8px;padding:12px;font-size:12px;color:#ccc;">
+        <div style="display:flex;gap:4px;margin-bottom:8px;">
+          <div style="background:#4fc3f7;color:#000;border-radius:4px 4px 0 0;padding:4px 10px;font-size:11px;font-weight:700;">FC Example</div>
+          <div style="background:#16213e;color:#aaa;border-radius:4px 4px 0 0;padding:4px 10px;font-size:11px;">United FC</div>
+          <div style="background:#16213e;color:#aaa;border-radius:4px 4px 0 0;padding:4px 10px;font-size:11px;">City SC</div>
+        </div>
+        <div style="background:#16213e;border-radius:0 6px 6px 6px;padding:10px;">
+          <div style="color:#fff;font-size:11px;margin-bottom:6px;">FC Example · Squad A · Current OVR: 847</div>
+          <div style="color:#4ade80;font-size:10px;">★ Optimizer: OVR 871 [Apply]</div>
+          <div style="color:#666;font-size:10px;">Alt 1: OVR 868 [Apply]</div>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:8px;">
+        <div class="pros"><h4>Pros</h4><ul><li>Focused per-club workflow</li><li>Clean if you have 5+ clubs</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Can't see all squads at once</li><li>More clicks to get around</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

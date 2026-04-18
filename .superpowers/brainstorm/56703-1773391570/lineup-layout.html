@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lineup Layout Options</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 24px; }
+  h2 { font-size: 18px; color: #58a6ff; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #8b949e; margin-bottom: 28px; }
+
+  .option-label { font-size: 13px; font-weight: 700; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .option-block { background: #161b22; border: 2px solid #30363d; border-radius: 10px; padding: 18px; margin-bottom: 28px; cursor: pointer; transition: border-color 0.15s; }
+  .option-block:hover { border-color: #58a6ff66; }
+  .option-block.selected { border-color: #58a6ff; }
+
+  /* ── OPTION A: Pitch layout ── */
+  .pitch-layout {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    background: #0d1117;
+    border-radius: 8px;
+    padding: 12px;
+    overflow-x: auto;
+  }
+  .pitch-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    justify-content: center;
+    min-width: 110px;
+  }
+  .pitch-col-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #484f58;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: 2px;
+  }
+  .col-divider {
+    width: 1px;
+    background: #21262d;
+    margin: 0 2px;
+    align-self: stretch;
+  }
+
+  /* ── OPTION B: Position group columns ── */
+  .group-layout {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    background: #0d1117;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .group-col {
+    flex: 1;
+    border-right: 1px solid #21262d;
+    padding: 10px 8px;
+  }
+  .group-col:last-child { border-right: none; }
+  .group-heading {
+    font-size: 10px;
+    font-weight: 700;
+    color: #484f58;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #21262d;
+  }
+  .group-heading.gk { color: #ffd700; }
+  .group-heading.def { color: #58a6ff; }
+  .group-heading.mid { color: #3fb950; }
+  .group-heading.atk { color: #f78166; }
+  .group-players { display: flex; flex-direction: column; gap: 5px; }
+
+  /* shared player card */
+  .pc {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 7px 9px;
+  }
+  .pc.swapped { border-color: #ffd70066; background: #1a1600; }
+  .pc-pos { font-size: 9px; font-weight: 700; color: #8b949e; text-transform: uppercase; }
+  .pc-name { font-size: 12px; font-weight: 700; color: #e6edf3; margin: 1px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pc.swapped .pc-name { color: #ffd700; }
+  .pc-stats { font-size: 11px; color: #8b949e; }
+  .pc-stats .ovr { font-weight: 700; color: #3fb950; }
+
+  .vs-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #484f58;
+    margin: 4px 0 12px;
+  }
+</style>
+</head>
+<body>
+
+<h2>How should the lineup be displayed?</h2>
+<p class="subtitle">Both expand when you click "Show lineup". Pick the one that feels most natural.</p>
+
+<!-- OPTION A -->
+<div class="option-label">Option A — Pitch columns (GK → DEF → MID → ATK, left to right)</div>
+<div class="option-block" onclick="this.classList.toggle('selected')">
+  <div class="pitch-layout">
+    <!-- GK -->
+    <div class="pitch-col">
+      <div class="pitch-col-label">GK</div>
+      <div class="pc">
+        <div class="pc-pos">GK</div>
+        <div class="pc-name">M. Santos</div>
+        <div class="pc-stats"><span class="ovr">82</span> · 100%</div>
+      </div>
+    </div>
+
+    <div class="col-divider"></div>
+
+    <!-- DEF -->
+    <div class="pitch-col">
+      <div class="pitch-col-label">Defenders</div>
+      <div class="pc swapped">
+        <div class="pc-pos">RB</div>
+        <div class="pc-name">D. Ramos ↑</div>
+        <div class="pc-stats"><span class="ovr">78</span> · 96%</div>
+      </div>
+      <div class="pc">
+        <div class="pc-pos">CB</div>
+        <div class="pc-name">A. Mueller</div>
+        <div class="pc-stats"><span class="ovr">79</span> · 90%</div>
+      </div>
+      <div class="pc">
+        <div class="pc-pos">CB</div>
+        <div class="pc-name">T. Park</div>
+        <div class="pc-stats"><span class="ovr">77</span> · 95%</div>
+      </div>
+      <div class="pc">
+        <div class="pc-pos">LB</div>
+        <div class="pc-name">O. Diaz</div>
+        <div class="pc-stats"><span class="ovr">72</span> · 100%</div>
+      </div>
+    </div>
+
+    <div class="col-divider"></div>
+
+    <!-- MID -->
+    <div class="pitch-col">
+      <div class="pitch-col-label">Midfielders</div>
+      <div class="pc swapped">
+        <div class="pc-pos">CM</div>
+        <div class="pc-name">P. Novak ↑</div>
+        <div class="pc-stats"><span class="ovr">81</span> · 78%</div>
+      </div>
+      <div class="pc">
+        <div class="pc-pos">CM</div>
+        <div class="pc-name">L. Okonkwo</div>
+        <div class="pc-stats"><span class="ovr">73</span> · 88%</div>
+      </div>
+      <div class="pc">
+        <div class="pc-pos">CM</div>
+        <div class="pc-name">F. Silva</div>
+        <div class="pc-stats"><span class="ovr">75</span> · 92%</div>
+      </div>
+    </div>
+
+    <div class="col-divider"></div>
+
+    <!-- ATK -->
+    <div class="pitch-col">
+      <div class="pitch-col-label">Attackers</div>
+      <div class="pc">
+        <div class="pc-pos">RW</div>
+        <div class="pc-name">K. Iwata</div>
+        <div class="pc-stats"><span class="ovr">71</span> · 100%</div>
+      </div>
+      <div class="pc swapped">
+        <div class="pc-pos">ST</div>
+        <div class="pc-name">H. Osei ↑</div>
+        <div class="pc-stats"><span class="ovr">83</span> · 88%</div>
+      </div>
+      <div class="pc">
+        <div class="pc-pos">LW</div>
+        <div class="pc-name">N. Abebe</div>
+        <div class="pc-stats"><span class="ovr">70</span> · 80%</div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:10px;font-size:12px;color:#8b949e;">↑ Swapped players highlighted in gold · reads like a formation from left to right</div>
+</div>
+
+<!-- OPTION B -->
+<div class="option-label">Option B — Position group columns with headers</div>
+<div class="option-block" onclick="this.classList.toggle('selected')">
+  <div class="group-layout">
+    <div class="group-col" style="max-width:130px;">
+      <div class="group-heading gk">GK</div>
+      <div class="group-players">
+        <div class="pc">
+          <div class="pc-pos">GK</div>
+          <div class="pc-name">M. Santos</div>
+          <div class="pc-stats"><span class="ovr">82</span> · 100%</div>
+        </div>
+      </div>
+    </div>
+    <div class="group-col">
+      <div class="group-heading def">Defenders</div>
+      <div class="group-players">
+        <div class="pc swapped">
+          <div class="pc-pos">RB</div>
+          <div class="pc-name">D. Ramos ↑</div>
+          <div class="pc-stats"><span class="ovr">78</span> · 96%</div>
+        </div>
+        <div class="pc">
+          <div class="pc-pos">CB</div>
+          <div class="pc-name">A. Mueller</div>
+          <div class="pc-stats"><span class="ovr">79</span> · 90%</div>
+        </div>
+        <div class="pc">
+          <div class="pc-pos">CB</div>
+          <div class="pc-name">T. Park</div>
+          <div class="pc-stats"><span class="ovr">77</span> · 95%</div>
+        </div>
+        <div class="pc">
+          <div class="pc-pos">LB</div>
+          <div class="pc-name">O. Diaz</div>
+          <div class="pc-stats"><span class="ovr">72</span> · 100%</div>
+        </div>
+      </div>
+    </div>
+    <div class="group-col">
+      <div class="group-heading mid">Midfielders</div>
+      <div class="group-players">
+        <div class="pc swapped">
+          <div class="pc-pos">CM</div>
+          <div class="pc-name">P. Novak ↑</div>
+          <div class="pc-stats"><span class="ovr">81</span> · 78%</div>
+        </div>
+        <div class="pc">
+          <div class="pc-pos">CM</div>
+          <div class="pc-name">L. Okonkwo</div>
+          <div class="pc-stats"><span class="ovr">73</span> · 88%</div>
+        </div>
+        <div class="pc">
+          <div class="pc-pos">CM</div>
+          <div class="pc-name">F. Silva</div>
+          <div class="pc-stats"><span class="ovr">75</span> · 92%</div>
+        </div>
+      </div>
+    </div>
+    <div class="group-col">
+      <div class="group-heading atk">Attackers</div>
+      <div class="group-players">
+        <div class="pc">
+          <div class="pc-pos">RW</div>
+          <div class="pc-name">K. Iwata</div>
+          <div class="pc-stats"><span class="ovr">71</span> · 100%</div>
+        </div>
+        <div class="pc swapped">
+          <div class="pc-pos">ST</div>
+          <div class="pc-name">H. Osei ↑</div>
+          <div class="pc-stats"><span class="ovr">83</span> · 88%</div>
+        </div>
+        <div class="pc">
+          <div class="pc-pos">LW</div>
+          <div class="pc-name">N. Abebe</div>
+          <div class="pc-stats"><span class="ovr">70</span> · 80%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:10px;font-size:12px;color:#8b949e;">↑ Swapped players highlighted in gold · colour-coded by position group</div>
+</div>
+
+</body>
+</html>

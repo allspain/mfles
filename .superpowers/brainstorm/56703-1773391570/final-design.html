@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MFL — All Teams (Final Design)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+
+  .page-header {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .page-header h1 { font-size: 17px; font-weight: 700; color: #58a6ff; }
+  .page-header .user { font-size: 12px; color: #8b949e; margin-top: 2px; }
+
+  .content { padding: 20px 28px; max-width: 1100px; margin: 0 auto; }
+
+  /* ── Squad card ── */
+  .squad-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+
+  .squad-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid #21262d;
+  }
+  .squad-name { font-size: 15px; font-weight: 700; }
+  .squad-meta { font-size: 12px; color: #8b949e; margin-top: 2px; }
+  .squad-header-right { display: flex; align-items: center; gap: 14px; }
+  .ovr-summary { text-align: right; }
+  .ovr-current { font-size: 12px; color: #8b949e; }
+  .ovr-best { font-size: 14px; font-weight: 700; color: #3fb950; }
+  .expand-all-btn { background: #21262d; border: 1px solid #30363d; color: #8b949e; border-radius: 6px; padding: 5px 11px; font-size: 12px; cursor: pointer; }
+  .expand-all-btn:hover { color: #e6edf3; }
+
+  /* ── Lineup rows ── */
+  .lineups { padding: 10px 14px; display: flex; flex-direction: column; gap: 7px; }
+  .lineup-row { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; overflow: hidden; }
+  .lineup-row.best { border-color: #ffd70033; }
+
+  .lineup-summary {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 13px; cursor: pointer;
+  }
+  .badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; }
+  .badge-current { background: #1c2d3f; color: #58a6ff; border: 1px solid #388bfd44; }
+  .badge-best    { background: #2a2000; color: #ffd700; border: 1px solid #ffd70044; }
+  .badge-alt     { background: #1c1c1c; color: #8b949e; border: 1px solid #30363d; }
+  .lineup-desc { flex: 1; font-size: 13px; color: #c9d1d9; }
+  .lineup-ovr { font-size: 14px; font-weight: 700; }
+  .ovr-blue { color: #58a6ff; }
+  .ovr-green { color: #3fb950; }
+  .lineup-diff { font-size: 11px; color: #3fb950; min-width: 28px; }
+  .show-btn { background: none; border: 1px solid #30363d; color: #8b949e; border-radius: 5px; padding: 3px 9px; font-size: 11px; cursor: pointer; flex-shrink: 0; }
+  .show-btn:hover { color: #e6edf3; }
+  .apply-btn { background: #238636; color: #fff; border: none; border-radius: 5px; padding: 5px 14px; font-size: 12px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+  .apply-btn:hover { background: #2ea043; }
+  .apply-btn:disabled { background: #21262d; color: #484f58; cursor: default; }
+
+  /* ── Pitch columns layout ── */
+  .lineup-detail { display: none; border-top: 1px solid #21262d; padding: 12px 13px; }
+  .lineup-detail.open { display: block; }
+
+  .pitch-cols { display: flex; gap: 0; }
+  .pitch-col {
+    display: flex; flex-direction: column; gap: 5px; padding: 0 10px;
+    border-right: 1px solid #21262d; flex: 1;
+  }
+  .pitch-col:first-child { padding-left: 0; }
+  .pitch-col:last-child  { border-right: none; padding-right: 0; }
+  .col-header {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    text-align: center; margin-bottom: 4px; padding-bottom: 5px;
+    border-bottom: 1px solid #21262d;
+  }
+  .col-gk  { color: #e3b341; }
+  .col-def { color: #58a6ff; }
+  .col-mid { color: #3fb950; }
+  .col-atk { color: #f78166; }
+
+  .pc { background: #161b22; border: 1px solid #21262d; border-radius: 6px; padding: 6px 9px; }
+  .pc.swap { border-color: #ffd70055; background: #1e1800; }
+  .pc-pos  { font-size: 9px; font-weight: 700; color: #8b949e; }
+  .pc-name { font-size: 12px; font-weight: 600; color: #e6edf3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0; }
+  .pc.swap .pc-name { color: #ffd700; }
+  .pc-stat { font-size: 11px; color: #8b949e; }
+  .pc-stat .o { font-weight: 700; color: #3fb950; }
+
+  /* ── Bottom bar ── */
+  .bottom-bar {
+    position: sticky; bottom: 0;
+    background: #161b22; border-top: 1px solid #30363d;
+    padding: 16px 28px; display: flex; align-items: center; justify-content: center;
+  }
+  .opt-all { background: #238636; color: #fff; border: none; border-radius: 8px; padding: 11px 36px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .opt-all:hover { background: #2ea043; }
+
+  /* ── Error / loading states ── */
+  .state-card { text-align: center; padding: 48px; color: #8b949e; font-size: 14px; }
+  .state-card .icon { font-size: 32px; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div>
+    <h1>MFL Enhancement Suite — All Teams</h1>
+    <div class="user">Logged in as rickklein · 2 clubs loaded</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ══ SQUAD CARD 1 ══ -->
+  <div class="squad-card">
+    <div class="squad-header">
+      <div>
+        <div class="squad-name">FC Bluewave</div>
+        <div class="squad-meta">Season 4 · 4-3-3 · 18 players</div>
+      </div>
+      <div class="squad-header-right">
+        <button class="expand-all-btn" onclick="expandAll('s1')">Expand All</button>
+        <div class="ovr-summary">
+          <div class="ovr-current">Current OVR: 847</div>
+          <div class="ovr-best">Best possible: 871 (+24)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lineups" id="s1">
+
+      <!-- CURRENT -->
+      <div class="lineup-row">
+        <div class="lineup-summary" onclick="toggle('s1-cur')">
+          <span class="badge badge-current">CURRENT</span>
+          <span class="lineup-desc">Active lineup</span>
+          <span class="lineup-ovr ovr-blue">847</span>
+          <span class="lineup-diff"></span>
+          <button class="show-btn" id="btn-s1-cur">Show ▾</button>
+          <button class="apply-btn" disabled>Applied</button>
+        </div>
+        <div class="lineup-detail" id="s1-cur">
+          <div class="pitch-cols">
+            <div class="pitch-col" style="max-width:110px;">
+              <div class="col-header col-gk">GK</div>
+              <div class="pc"><div class="pc-pos">GK</div><div class="pc-name">M. Santos</div><div class="pc-stat"><span class="o">82</span> · 100%</div></div>
+            </div>
+            <div class="pitch-col">
+              <div class="col-header col-def">Defenders</div>
+              <div class="pc"><div class="pc-pos">RB</div><div class="pc-name">J. Vargas</div><div class="pc-stat"><span class="o">74</span> · 85%</div></div>
+              <div class="pc"><div class="pc-pos">CB</div><div class="pc-name">A. Mueller</div><div class="pc-stat"><span class="o">79</span> · 90%</div></div>
+              <div class="pc"><div class="pc-pos">CB</div><div class="pc-name">T. Park</div><div class="pc-stat"><span class="o">77</span> · 95%</div></div>
+              <div class="pc"><div class="pc-pos">LB</div><div class="pc-name">O. Diaz</div><div class="pc-stat"><span class="o">72</span> · 100%</div></div>
+            </div>
+            <div class="pitch-col">
+              <div class="col-header col-mid">Midfielders</div>
+              <div class="pc"><div class="pc-pos">CM</div><div class="pc-name">R. Chen</div><div class="pc-stat"><span class="o">76</span> · 70%</div></div>
+              <div class="pc"><div class="pc-pos">CM</div><div class="pc-name">L. Okonkwo</div><div class="pc-stat"><span class="o">73</span> · 88%</div></div>
+              <div class="pc"><div class="pc-pos">CM</div><div class="pc-name">F. Silva</div><div class="pc-stat"><span class="o">75</span> · 92%</div></div>
+            </div>
+            <div class="pitch-col">
+              <div class="col-header col-atk">Attackers</div>
+              <div class="pc"><div class="pc-pos">RW</div><div class="pc-name">K. Iwata</div><div class="pc-stat"><span class="o">71</span> · 100%</div></div>
+              <div class="pc"><div class="pc-pos">ST</div><div class="pc-name">B. Kowalski</div><div class="pc-stat"><span class="o">68</span> · 55%</div></div>
+              <div class="pc"><div class="pc-pos">LW</div><div class="pc-name">N. Abebe</div><div class="pc-stat"><span class="o">70</span> · 80%</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BEST -->
+      <div class="lineup-row best">
+        <div class="lineup-summary" onclick="toggle('s1-best')">
+          <span class="badge badge-best">★ BEST</span>
+          <span class="lineup-desc">Optimizer's pick — 3 swaps</span>
+          <span class="lineup-ovr ovr-green">871</span>
+          <span class="lineup-diff">+24</span>
+          <button class="show-btn" id="btn-s1-best">Show ▾</button>
+          <button class="apply-btn" onclick="event.stopPropagation()">Apply</button>
+        </div>
+        <div class="lineup-detail" id="s1-best">
+          <div class="pitch-cols">
+            <div class="pitch-col" style="max-width:110px;">
+              <div class="col-header col-gk">GK</div>
+              <div class="pc"><div class="pc-pos">GK</div><div class="pc-name">M. Santos</div><div class="pc-stat"><span class="o">82</span> · 100%</div></div>
+            </div>
+            <div class="pitch-col">
+              <div class="col-header col-def">Defenders</div>
+              <div class="pc swap"><div class="pc-pos">RB</div><div class="pc-name">D. Ramos ↑</div><div class="pc-stat"><span class="o">78</span> · 96%</div></div>
+              <div class="pc"><div class="pc-pos">CB</div><div class="pc-name">A. Mueller</div><div class="pc-stat"><span class="o">79</span> · 90%</div></div>
+              <div class="pc"><div class="pc-pos">CB</div><div class="pc-name">T. Park</div><div class="pc-stat"><span class="o">77</span> · 95%</div></div>
+              <div class="pc"><div class="pc-pos">LB</div><div class="pc-name">O. Diaz</div><div class="pc-stat"><span class="o">72</span> · 100%</div></div>
+            </div>
+            <div class="pitch-col">
+              <div class="col-header col-mid">Midfielders</div>
+              <div class="pc swap"><div class="pc-pos">CM</div><div class="pc-name">P. Novak ↑</div><div class="pc-stat"><span class="o">81</span> · 78%</div></div>
+              <div class="pc"><div class="pc-pos">CM</div><div class="pc-name">L. Okonkwo</div><div class="pc-stat"><span class="o">73</span> · 88%</div></div>
+              <div class="pc"><div class="pc-pos">CM</div><div class="pc-name">F. Silva</div><div class="pc-stat"><span class="o">75</span> · 92%</div></div>
+            </div>
+            <div class="pitch-col">
+              <div class="col-header col-atk">Attackers</div>
+              <div class="pc"><div class="pc-pos">RW</div><div class="pc-name">K. Iwata</div><div class="pc-stat"><span class="o">71</span> · 100%</div></div>
+              <div class="pc swap"><div class="pc-pos">ST</div><div class="pc-name">H. Osei ↑</div><div class="pc-stat"><span class="o">83</span> · 88%</div></div>
+              <div class="pc"><div class="pc-pos">LW</div><div class="pc-name">N. Abebe</div><div class="pc-stat"><span class="o">70</span> · 80%</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALT 1 -->
+      <div class="lineup-row">
+        <div class="lineup-summary" onclick="toggle('s1-a1')">
+          <span class="badge badge-alt">ALT 1</span>
+          <span class="lineup-desc">2 swaps — keep Vargas at RB</span>
+          <span class="lineup-ovr ovr-green">868</span>
+          <span class="lineup-diff">+21</span>
+          <button class="show-btn" id="btn-s1-a1">Show ▾</button>
+          <button class="apply-btn" onclick="event.stopPropagation()">Apply</button>
+        </div>
+        <div class="lineup-detail" id="s1-a1">
+          <div style="color:#484f58;font-size:12px;padding:4px 2px">Full pitch-column layout shown here for Alt 1...</div>
+        </div>
+      </div>
+
+      <!-- ALT 2-5 abbreviated -->
+      <div class="lineup-row">
+        <div class="lineup-summary" onclick="toggle('s1-a2')">
+          <span class="badge badge-alt">ALT 2</span>
+          <span class="lineup-desc">2 swaps — keep Chen at CM</span>
+          <span class="lineup-ovr ovr-green">865</span>
+          <span class="lineup-diff">+18</span>
+          <button class="show-btn" id="btn-s1-a2">Show ▾</button>
+          <button class="apply-btn" onclick="event.stopPropagation()">Apply</button>
+        </div>
+        <div class="lineup-detail" id="s1-a2"></div>
+      </div>
+
+      <div class="lineup-row">
+        <div class="lineup-summary" onclick="toggle('s1-a3')">
+          <span class="badge badge-alt">ALT 3</span>
+          <span class="lineup-desc">1 swap — energy-focused</span>
+          <span class="lineup-ovr ovr-green">861</span>
+          <span class="lineup-diff">+14</span>
+          <button class="show-btn" id="btn-s1-a3">Show ▾</button>
+          <button class="apply-btn" onclick="event.stopPropagation()">Apply</button>
+        </div>
+        <div class="lineup-detail" id="s1-a3"></div>
+      </div>
+
+      <div class="lineup-row">
+        <div class="lineup-summary" onclick="toggle('s1-a4')">
+          <span class="badge badge-alt">ALT 4</span>
+          <span class="lineup-desc">1 swap — keep Kowalski at ST</span>
+          <span class="lineup-ovr ovr-green">858</span>
+          <span class="lineup-diff">+11</span>
+          <button class="show-btn" id="btn-s1-a4">Show ▾</button>
+          <button class="apply-btn" onclick="event.stopPropagation()">Apply</button>
+        </div>
+        <div class="lineup-detail" id="s1-a4"></div>
+      </div>
+
+      <div class="lineup-row">
+        <div class="lineup-summary" onclick="toggle('s1-a5')">
+          <span class="badge badge-alt">ALT 5</span>
+          <span class="lineup-desc">0 swaps from current — minor reshuffle</span>
+          <span class="lineup-ovr ovr-green">854</span>
+          <span class="lineup-diff">+7</span>
+          <button class="show-btn" id="btn-s1-a5">Show ▾</button>
+          <button class="apply-btn" onclick="event.stopPropagation()">Apply</button>
+        </div>
+        <div class="lineup-detail" id="s1-a5"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SQUAD CARD 2 ══ -->
+  <div class="squad-card">
+    <div class="squad-header">
+      <div>
+        <div class="squad-name">Ironside United</div>
+        <div class="squad-meta">Season 4 · 4-4-2 · 16 players</div>
+      </div>
+      <div class="squad-header-right">
+        <button class="expand-all-btn">Expand All</button>
+        <div class="ovr-summary">
+          <div class="ovr-current">Current OVR: 812</div>
+          <div class="ovr-best">Best possible: 829 (+17)</div>
+        </div>
+      </div>
+    </div>
+    <div class="lineups">
+      <div class="lineup-row">
+        <div class="lineup-summary">
+          <span class="badge badge-current">CURRENT</span>
+          <span class="lineup-desc">Active lineup</span>
+          <span class="lineup-ovr ovr-blue">812</span>
+          <span class="lineup-diff"></span>
+          <button class="show-btn">Show ▾</button>
+          <button class="apply-btn" disabled>Applied</button>
+        </div>
+      </div>
+      <div class="lineup-row best">
+        <div class="lineup-summary">
+          <span class="badge badge-best">★ BEST</span>
+          <span class="lineup-desc">Optimizer's pick — 2 swaps</span>
+          <span class="lineup-ovr ovr-green">829</span>
+          <span class="lineup-diff">+17</span>
+          <button class="show-btn">Show ▾</button>
+          <button class="apply-btn">Apply</button>
+        </div>
+      </div>
+      <div style="padding:8px 14px 12px;color:#484f58;font-size:12px;">+ 5 alternatives</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <button class="opt-all">⚡ Optimize All Squads</button>
+</div>
+
+<script>
+function toggle(id) {
+  const el = document.getElementById(id);
+  const btn = document.getElementById('btn-' + id);
+  if (!el) return;
+  const open = el.classList.toggle('open');
+  if (btn) btn.textContent = open ? 'Hide ▴' : 'Show ▾';
+}
+function expandAll(squadId) {
+  const squad = document.getElementById(squadId);
+  if (!squad) return;
+  const details = squad.querySelectorAll('.lineup-detail');
+  const allOpen = [...details].every(d => d.classList.contains('open'));
+  details.forEach(d => {
+    const btn = document.getElementById('btn-' + d.id);
+    if (allOpen) { d.classList.remove('open'); if (btn) btn.textContent = 'Show ▾'; }
+    else          { d.classList.add('open');    if (btn) btn.textContent = 'Hide ▴'; }
+  });
+}
+</script>
+</body>
+</html>

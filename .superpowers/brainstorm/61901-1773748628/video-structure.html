@@ -1,0 +1,67 @@
+<h2>How should the 60 seconds be structured?</h2>
+<p class="subtitle">Each block below = one scene. Click an option to select it.</p>
+
+<style>
+.timeline { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.scene { display: flex; align-items: center; gap: 0; border-radius: 6px; overflow: hidden; font-size: 12px; }
+.scene-time { background: #21262d; color: #8b949e; padding: 6px 10px; min-width: 52px; text-align: center; font-weight: 700; font-size: 11px; flex-shrink: 0; }
+.scene-label { padding: 6px 12px; font-weight: 600; flex: 1; }
+.c-intro  { background: #1c2128; color: #58a6ff; }
+.c-feat1  { background: #1a2332; color: #3fb950; }
+.c-feat2  { background: #1a2d1a; color: #3fb950; }
+.c-feat3  { background: #1f2a1f; color: #3fb950; }
+.c-feat4  { background: #271e1e; color: #f78166; }
+.c-outro  { background: #1c2128; color: #8b949e; }
+.option-label { font-size: 11px; font-weight: 700; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin: 6px 0 4px; }
+</style>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Feature Parade — show everything</h3>
+      <p style="margin-bottom:10px">Tight cuts, each feature gets its moment. Best if all 4 features are roughly equal priority.</p>
+      <div class="timeline">
+        <div class="scene"><div class="scene-time">0–6s</div><div class="scene-label c-intro">⚡ Title card — "MFL Enhancement Suite"</div></div>
+        <div class="scene"><div class="scene-time">6–20s</div><div class="scene-label c-feat1">🏟 All-Teams page — see all squads at a glance, OVR + eff scores</div></div>
+        <div class="scene"><div class="scene-time">20–34s</div><div class="scene-label c-feat2">🤖 Lineup Optimizer — one click, energy-aware best XI</div></div>
+        <div class="scene"><div class="scene-time">34–46s</div><div class="scene-label c-feat3">🎯 Position tooltip — hover to see OVR at every position</div></div>
+        <div class="scene"><div class="scene-time">46–54s</div><div class="scene-label c-feat4">⚡ Optimize All Squads — bulk action in one click</div></div>
+        <div class="scene"><div class="scene-time">54–60s</div><div class="scene-label c-outro">→ Install on Chrome Web Store</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Hero Feature First — All-Teams page steals the show</h3>
+      <p style="margin-bottom:10px">Lead with the most impressive thing, then support it. Best for wow-factor opening.</p>
+      <div class="timeline">
+        <div class="scene"><div class="scene-time">0–5s</div><div class="scene-label c-intro">⚡ Title card — dark, bold</div></div>
+        <div class="scene"><div class="scene-time">5–25s</div><div class="scene-label c-feat1">🏟 All-Teams page — the full demo: load, expand, compare lineups</div></div>
+        <div class="scene"><div class="scene-time">25–42s</div><div class="scene-label c-feat2">🤖 Optimizer — tactics page, one click, before/after</div></div>
+        <div class="scene"><div class="scene-time">42–52s</div><div class="scene-label c-feat3">🎯 Position tooltip — quick highlight, feels like a bonus</div></div>
+        <div class="scene"><div class="scene-time">52–60s</div><div class="scene-label c-outro">→ Install on Chrome Web Store</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Problem → Solution — narrative arc</h3>
+      <p style="margin-bottom:10px">Open by establishing the pain, then reveal the extension as the answer. Most cinematic.</p>
+      <div class="timeline">
+        <div class="scene"><div class="scene-time">0–8s</div><div class="scene-label c-intro">😤 "Managing multiple MFL clubs is tedious" — plain MFL UI, no extension</div></div>
+        <div class="scene"><div class="scene-time">8–14s</div><div class="scene-label c-feat4">✨ Extension installs — logo reveal, dark theme kicks in</div></div>
+        <div class="scene"><div class="scene-time">14–32s</div><div class="scene-label c-feat1">🏟 All-Teams page — side-by-side before/after feel</div></div>
+        <div class="scene"><div class="scene-time">32–47s</div><div class="scene-label c-feat2">🤖 Optimizer + energy scores — the intelligence behind it</div></div>
+        <div class="scene"><div class="scene-time">47–54s</div><div class="scene-label c-feat3">🎯 Tooltip — quick win moment</div></div>
+        <div class="scene"><div class="scene-time">54–60s</div><div class="scene-label c-outro">→ Install on Chrome Web Store</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>

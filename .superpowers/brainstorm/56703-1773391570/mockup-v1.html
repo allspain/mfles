@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MFL Enhancement Suite — All Teams</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+
+  .page-header {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .page-header h1 { font-size: 18px; font-weight: 700; color: #58a6ff; }
+  .page-header .subtitle { font-size: 13px; color: #8b949e; margin-top: 2px; }
+  .optimize-all-btn {
+    background: #238636;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .optimize-all-btn:hover { background: #2ea043; }
+
+  .content { padding: 24px 32px; max-width: 1000px; margin: 0 auto; }
+
+  .squad-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .squad-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #21262d;
+    cursor: pointer;
+  }
+  .squad-name { font-size: 16px; font-weight: 700; color: #e6edf3; }
+  .squad-meta { font-size: 13px; color: #8b949e; margin-top: 3px; }
+  .squad-ovr { text-align: right; }
+  .squad-ovr .current { font-size: 13px; color: #8b949e; }
+  .squad-ovr .best { font-size: 15px; font-weight: 700; color: #3fb950; }
+  .squad-header-right { display: flex; align-items: center; gap: 16px; }
+  .expand-all-btn {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .expand-all-btn:hover { color: #e6edf3; border-color: #8b949e; }
+
+  .lineups { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+
+  .lineup-row {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .lineup-row.best-pick { border-color: #388bfd44; background: #0d1117; }
+
+  .lineup-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+  }
+  .lineup-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .badge-best { background: #ffd70022; color: #ffd700; border: 1px solid #ffd70044; }
+  .badge-alt { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+  .badge-current { background: #21262d; color: #58a6ff; border: 1px solid #388bfd44; }
+
+  .lineup-label { flex: 1; font-size: 13px; color: #c9d1d9; }
+  .lineup-ovr { font-size: 14px; font-weight: 700; color: #3fb950; margin-right: 4px; }
+  .lineup-ovr.current-ovr { color: #58a6ff; }
+  .lineup-diff { font-size: 11px; color: #3fb950; }
+
+  .toggle-btn {
+    background: none;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .toggle-btn:hover { color: #e6edf3; border-color: #8b949e; }
+
+  .apply-btn {
+    background: #238636;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .apply-btn:hover { background: #2ea043; }
+  .apply-btn:disabled { background: #21262d; color: #484f58; cursor: default; }
+
+  .lineup-detail {
+    border-top: 1px solid #21262d;
+    padding: 12px 14px;
+    display: none;
+  }
+  .lineup-detail.open { display: block; }
+
+  .player-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 6px;
+  }
+  .player-entry {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 5px;
+    padding: 6px 10px;
+  }
+  .player-pos { font-size: 10px; font-weight: 700; color: #8b949e; text-transform: uppercase; }
+  .player-name { font-size: 12px; color: #e6edf3; font-weight: 600; margin: 1px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .player-stats { font-size: 11px; color: #8b949e; }
+  .player-stats .ovr { color: #3fb950; font-weight: 700; }
+  .player-entry.swapped { border-color: #ffd70044; background: #161200; }
+  .player-entry.swapped .player-name { color: #ffd700; }
+
+  .bottom-bar {
+    background: #161b22;
+    border-top: 1px solid #30363d;
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 16px;
+  }
+  .optimize-all-big {
+    background: #238636;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 40px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .optimize-all-big:hover { background: #2ea043; }
+
+  .loading-state { text-align: center; padding: 60px; color: #8b949e; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div>
+    <h1>MFL Enhancement Suite</h1>
+    <div class="subtitle">All Teams · Logged in as rickklein</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- SQUAD CARD 1 -->
+  <div class="squad-card">
+    <div class="squad-header">
+      <div>
+        <div class="squad-name">FC Bluewave</div>
+        <div class="squad-meta">Season 4 · 4-3-3 · 18 players</div>
+      </div>
+      <div class="squad-header-right">
+        <button class="expand-all-btn" onclick="toggleAllLineups('squad1')">Expand All Lineups</button>
+        <div class="squad-ovr">
+          <div class="current">Current OVR: 847</div>
+          <div class="best">Best possible: 871 (+24)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lineups" id="squad1">
+
+      <!-- Current lineup -->
+      <div class="lineup-row">
+        <div class="lineup-summary" onclick="toggleDetail('s1-current')">
+          <span class="lineup-badge badge-current">CURRENT</span>
+          <span class="lineup-label">Active lineup</span>
+          <span class="lineup-ovr current-ovr">847</span>
+          <button class="toggle-btn">Show lineup ▾</button>
+          <button class="apply-btn" disabled>Applied</button>
+        </div>
+        <div class="lineup-detail" id="s1-current">
+          <div class="player-grid">
+            <div class="player-entry"><div class="player-pos">GK</div><div class="player-name">M. Santos</div><div class="player-stats"><span class="ovr">82</span> · 100% energy</div></div>
+            <div class="player-entry"><div class="player-pos">RB</div><div class="player-name">J. Vargas</div><div class="player-stats"><span class="ovr">74</span> · 85% energy</div></div>
+            <div class="player-entry"><div class="player-pos">CB</div><div class="player-name">A. Mueller</div><div class="player-stats"><span class="ovr">79</span> · 90% energy</div></div>
+            <div class="player-entry"><div class="player-pos">CB</div><div class="player-name">T. Park</div><div class="player-stats"><span class="ovr">77</span> · 95% energy</div></div>
+            <div class="player-entry"><div class="player-pos">LB</div><div class="player-name">O. Diaz</div><div class="player-stats"><span class="ovr">72</span> · 100% energy</div></div>
+            <div class="player-entry"><div class="player-pos">CM</div><div class="player-name">R. Chen</div><div class="player-stats"><span class="ovr">76</span> · 70% energy</div></div>
+            <div class="player-entry"><div class="player-pos">CM</div><div class="player-name">L. Okonkwo</div><div class="player-stats"><span class="ovr">73</span> · 88% energy</div></div>
+            <div class="player-entry"><div class="player-pos">CM</div><div class="player-name">F. Silva</div><div class="player-stats"><span class="ovr">75</span> · 92% energy</div></div>
+            <div class="player-entry"><div class="player-pos">RW</div><div class="player-name">K. Iwata</div><div class="player-stats"><span class="ovr">71</span> · 100% energy</div></div>
+            <div class="player-entry"><div class="player-pos">ST</div><div class="player-name">B. Kowalski</div><div class="player-stats"><span class="ovr">68</span> · 55% energy</div></div>
+            <div class="player-entry"><div class="player-pos">LW</div><div class="player-name">N. Abebe</div><div class="player-stats"><span class="ovr">70</span> · 80% energy</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Optimizer pick -->
+      <div class="lineup-row best-pick">
+        <div class="lineup-summary" onclick="toggleDetail('s1-best')">
+          <span class="lineup-badge badge-best">★ BEST</span>
+          <span class="lineup-label">Optimizer's pick — 3 swaps</span>
+          <span class="lineup-ovr">871</span>
+          <span class="lineup-diff">+24</span>
+          <button class="toggle-btn">Show lineup ▾</button>
+          <button class="apply-btn" onclick="event.stopPropagation()">Apply</button>
+        </div>
+        <div class="lineup-detail" id="s1-best">
+          <div class="player-grid">
+            <div class="player-entry"><div class="player-pos">GK</div><div class="player-name">M. Santos</div><div class="player-stats"><span class="ovr">82</span> · 100% energy</div></div>
+            <div class="player-entry swapped"><div class="player-pos">RB</div><div class="player-name">D. Ramos ↑</div><div class="player-stats"><span class="ovr">78</span> · 96% energy</div></div>
+            <div class="player-entry"><div class="player-pos">CB</div><div class="player-name">A. Mueller</div><div class="player-stats"><span class="ovr">79</span> · 90% energy</div></div>
+            <div class="player-entry"><div class="player-pos">CB</div><div class="player-name">T. Park</div><div class="player-stats"><span class="ovr">77</span> · 95% energy</div></div>
+            <div class="player-entry"><div class="player-pos">LB</div><div class="player-name">O. Diaz</div><div class="player-stats"><span class="ovr">72</span> · 100% energy</div></div>
+            <div class="player-entry swapped"><div class="player-pos">CM</div><div class="player-name">P. Novak ↑</div><div class="player-stats"><span class="ovr">81</span> · 78% energy</div></div>
+            <div class="player-entry"><div class="player-pos">CM</div><div class="player-name">L. Okonkwo</div><div class="player-stats"><span class="ovr">73</span> · 88% energy</div></div>
+            <div class="player-entry"><div class="player-pos">CM</div><div class="player-name">F. Silva</div><div class="player-stats"><span class="ovr">75</span> · 92% energy</div></div>
+            <div class="player-entry"><div class="player-pos">RW</div><div class="player-name">K. Iwata</div><div class="player-stats"><span class="ovr">71</span> · 100% energy</div></div>
+            <div class="player-entry swapped"><div class="player-pos">ST</div><div class="player-name">H. Osei ↑</div><div class="player-stats"><span class="ovr">83</span> · 88% energy</div></div>
+            <div class="player-entry"><div class="player-pos">LW</div><div class="player-name">N. Abebe</div><div class="player-stats"><span class="ovr">70</span> · 80% energy</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alt 1 -->
+      <div class="lineup-row">
+        <div class="lineup-summary" onclick="toggleDetail('s1-alt1')">
+          <span class="lineup-badge badge-alt">ALT 1</span>
+          <span class="lineup-label">2 swaps — keep Vargas</span>
+          <span class="lineup-ovr">868</span>
+          <span class="lineup-diff">+21</span>
+          <button class="toggle-btn">Show lineup ▾</button>
+          <button class="apply-btn" onclick="event.stopPropagation()">Apply</button>
+        </div>
+        <div class="lineup-detail" id="s1-alt1">
+          <div style="color:#8b949e;font-size:12px;padding:4px 0">Full 11-player lineup shown here...</div>
+        </div>
+      </div>
+
+      <!-- Alt 2 -->
+      <div class="lineup-row">
+        <div class="lineup-summary" onclick="toggleDetail('s1-alt2')">
+          <span class="lineup-badge badge-alt">ALT 2</span>
+          <span class="lineup-label">2 swaps — keep Novak out</span>
+          <span class="lineup-ovr">865</span>
+          <span class="lineup-diff">+18</span>
+          <button class="toggle-btn">Show lineup ▾</button>
+          <button class="apply-btn" onclick="event.stopPropagation()">Apply</button>
+        </div>
+        <div class="lineup-detail" id="s1-alt2"></div>
+      </div>
+
+      <!-- Alt 3-5 collapsed for brevity -->
+      <div class="lineup-row">
+        <div class="lineup-summary" onclick="toggleDetail('s1-alt3')">
+          <span class="lineup-badge badge-alt">ALT 3</span>
+          <span class="lineup-label">1 swap — energy focus</span>
+          <span class="lineup-ovr">861</span>
+          <span class="lineup-diff">+14</span>
+          <button class="toggle-btn">Show lineup ▾</button>
+          <button class="apply-btn" onclick="event.stopPropagation()">Apply</button>
+        </div>
+        <div class="lineup-detail" id="s1-alt3"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SQUAD CARD 2 (collapsed style) -->
+  <div class="squad-card">
+    <div class="squad-header">
+      <div>
+        <div class="squad-name">Ironside United</div>
+        <div class="squad-meta">Season 4 · 4-4-2 · 16 players</div>
+      </div>
+      <div class="squad-header-right">
+        <button class="expand-all-btn">Expand All Lineups</button>
+        <div class="squad-ovr">
+          <div class="current">Current OVR: 812</div>
+          <div class="best">Best possible: 829 (+17)</div>
+        </div>
+      </div>
+    </div>
+    <div class="lineups">
+      <div class="lineup-row">
+        <div class="lineup-summary">
+          <span class="lineup-badge badge-current">CURRENT</span>
+          <span class="lineup-label">Active lineup</span>
+          <span class="lineup-ovr current-ovr">812</span>
+          <button class="toggle-btn">Show lineup ▾</button>
+          <button class="apply-btn" disabled>Applied</button>
+        </div>
+      </div>
+      <div class="lineup-row best-pick">
+        <div class="lineup-summary">
+          <span class="lineup-badge badge-best">★ BEST</span>
+          <span class="lineup-label">Optimizer's pick — 2 swaps</span>
+          <span class="lineup-ovr">829</span>
+          <span class="lineup-diff">+17</span>
+          <button class="toggle-btn">Show lineup ▾</button>
+          <button class="apply-btn">Apply</button>
+        </div>
+      </div>
+      <div style="padding:8px 16px 12px;color:#8b949e;font-size:12px;">+ 5 alternatives · click to expand</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <button class="optimize-all-big">⚡ Optimize All Squads</button>
+</div>
+
+<script>
+function toggleDetail(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const btn = el.previousElementSibling?.querySelector('.toggle-btn');
+  if (el.classList.contains('open')) {
+    el.classList.remove('open');
+    if (btn) btn.textContent = 'Show lineup ▾';
+  } else {
+    el.classList.add('open');
+    if (btn) btn.textContent = 'Hide lineup ▴';
+  }
+}
+
+function toggleAllLineups(squadId) {
+  const squad = document.getElementById(squadId);
+  if (!squad) return;
+  const details = squad.querySelectorAll('.lineup-detail');
+  const allOpen = [...details].every(d => d.classList.contains('open'));
+  details.forEach(d => {
+    if (allOpen) d.classList.remove('open');
+    else d.classList.add('open');
+    const btn = d.previousElementSibling?.querySelector('.toggle-btn');
+    if (btn) btn.textContent = allOpen ? 'Show lineup ▾' : 'Hide lineup ▴';
+  });
+  const expandBtn = squad.previousElementSibling?.querySelector('.expand-all-btn');
+  if (expandBtn) expandBtn.textContent = allOpen ? 'Expand All Lineups' : 'Collapse All';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<h2>Popup — Option A revised</h2>
+<p class="subtitle">Both buttons neutral by default, green on hover. Does this feel right?</p>
+
+<div style="display:flex;gap:40px;justify-content:center;align-items:flex-start;flex-wrap:wrap;margin-top:16px">
+
+  <!-- Default state -->
+  <div>
+    <p class="label" style="text-align:center;margin-bottom:12px">Default</p>
+    <div style="background:#0f1923;border-radius:8px;padding:16px;width:240px;font-family:system-ui,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.5)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid #1e2d3d;padding-bottom:12px">
+        <div style="background:#111;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#fff;line-height:1">MFL<br><span style="color:#a3e635;font-size:7px">ES</span></div>
+        <span style="color:#e6edf3;font-size:13px;font-weight:600">MFL Enhancement Suite</span>
+      </div>
+      <button style="width:100%;background:#161b22;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:9px 12px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;text-align:left">⚡ Optimize All Teams</button>
+      <button style="width:100%;background:#161b22;border:1px solid #30363d;color:#8b949e;border-radius:6px;padding:9px 12px;font-size:13px;cursor:pointer;text-align:left">⚙ Settings</button>
+    </div>
+  </div>
+
+  <!-- Hover state on first button -->
+  <div>
+    <p class="label" style="text-align:center;margin-bottom:12px">Hovering "Optimize All Teams"</p>
+    <div style="background:#0f1923;border-radius:8px;padding:16px;width:240px;font-family:system-ui,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.5)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid #1e2d3d;padding-bottom:12px">
+        <div style="background:#111;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#fff;line-height:1">MFL<br><span style="color:#a3e635;font-size:7px">ES</span></div>
+        <span style="color:#e6edf3;font-size:13px;font-weight:600">MFL Enhancement Suite</span>
+      </div>
+      <button style="width:100%;background:#1a2f1a;border:1px solid #3fb950;color:#3fb950;border-radius:6px;padding:9px 12px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;text-align:left">⚡ Optimize All Teams</button>
+      <button style="width:100%;background:#161b22;border:1px solid #30363d;color:#8b949e;border-radius:6px;padding:9px 12px;font-size:13px;cursor:pointer;text-align:left">⚙ Settings</button>
+    </div>
+  </div>
+
+  <!-- Hover state on settings -->
+  <div>
+    <p class="label" style="text-align:center;margin-bottom:12px">Hovering "Settings"</p>
+    <div style="background:#0f1923;border-radius:8px;padding:16px;width:240px;font-family:system-ui,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.5)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;border-bottom:1px solid #1e2d3d;padding-bottom:12px">
+        <div style="background:#111;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#fff;line-height:1">MFL<br><span style="color:#a3e635;font-size:7px">ES</span></div>
+        <span style="color:#e6edf3;font-size:13px;font-weight:600">MFL Enhancement Suite</span>
+      </div>
+      <button style="width:100%;background:#161b22;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:9px 12px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;text-align:left">⚡ Optimize All Teams</button>
+      <button style="width:100%;background:#1a2f1a;border:1px solid #3fb950;color:#3fb950;border-radius:6px;padding:9px 12px;font-size:13px;cursor:pointer;text-align:left">⚙ Settings</button>
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center;margin-top:24px">
+  <div class="options" style="display:inline-flex;gap:12px">
+    <div class="option" data-choice="approve" onclick="toggleSelect(this)" style="padding:10px 24px">
+      <div class="content"><h3>Looks good</h3></div>
+    </div>
+    <div class="option" data-choice="tweak" onclick="toggleSelect(this)" style="padding:10px 24px">
+      <div class="content"><h3>Need a tweak</h3></div>
+    </div>
+  </div>
+</div>

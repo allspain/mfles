@@ -1,0 +1,132 @@
+<h2>Settings — Features with additional parameters</h2>
+<p class="subtitle">How should extra config values appear under a feature? (Hypothetical params shown for illustration)</p>
+
+<div class="cards">
+
+  <!-- Option A: Inline expand -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0d1117;border-radius:8px;padding:20px;width:340px;margin:0 auto;font-family:system-ui,sans-serif;font-size:12px">
+        <div style="color:#8b949e;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Features</div>
+        <div style="background:#161b22;border:1px solid #21262d;border-radius:8px;overflow:hidden">
+          <!-- Feature row with params inline below -->
+          <div style="border-bottom:1px solid #21262d">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px">
+              <div>
+                <div style="color:#e6edf3;font-weight:600;margin-bottom:2px">Lineup Optimizer</div>
+                <div style="color:#8b949e;font-size:10px">Best XI button on tactics page</div>
+              </div>
+              <div style="background:#3fb950;border-radius:10px;width:36px;height:20px;position:relative;flex-shrink:0">
+                <div style="background:#fff;border-radius:50%;width:16px;height:16px;position:absolute;right:2px;top:2px"></div>
+              </div>
+            </div>
+            <!-- Sub-params indented below, only visible when enabled -->
+            <div style="background:#0d1117;padding:10px 14px 12px 28px;border-top:1px solid #21262d">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <div>
+                  <div style="color:#8b949e;font-size:11px;font-weight:500">Energy threshold</div>
+                  <div style="color:#484f58;font-size:10px">Min energy % to consider a player</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <input type="range" value="50" style="width:70px;accent-color:#3fb950" disabled>
+                  <span style="color:#8b949e;font-size:11px;width:28px">50%</span>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <div style="color:#8b949e;font-size:11px;font-weight:500">Show swap diff</div>
+                  <div style="color:#484f58;font-size:10px">Highlight OVR change after optimize</div>
+                </div>
+                <div style="background:#3fb950;border-radius:10px;width:28px;height:16px;position:relative;flex-shrink:0">
+                  <div style="background:#fff;border-radius:50%;width:12px;height:12px;position:absolute;right:2px;top:2px"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Second feature — no params yet -->
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px">
+            <div>
+              <div style="color:#e6edf3;font-weight:600;margin-bottom:2px">Position OVR</div>
+              <div style="color:#8b949e;font-size:10px">Per-position OVR chips on scouting &amp; tactics</div>
+            </div>
+            <div style="background:#3fb950;border-radius:10px;width:36px;height:20px;position:relative;flex-shrink:0">
+              <div style="background:#fff;border-radius:50%;width:16px;height:16px;position:absolute;right:2px;top:2px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Always expanded</h3>
+      <p>Params shown inline below the toggle whenever the feature is enabled. Simple, no interaction needed to see them.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Collapsed, expand on click -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0d1117;border-radius:8px;padding:20px;width:340px;margin:0 auto;font-family:system-ui,sans-serif;font-size:12px">
+        <div style="color:#8b949e;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Features</div>
+        <div style="background:#161b22;border:1px solid #21262d;border-radius:8px;overflow:hidden">
+          <!-- Feature row with chevron -->
+          <div style="border-bottom:1px solid #21262d">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="color:#484f58;font-size:10px">▼</span>
+                <div>
+                  <div style="color:#e6edf3;font-weight:600;margin-bottom:2px">Lineup Optimizer</div>
+                  <div style="color:#8b949e;font-size:10px">Best XI button on tactics page</div>
+                </div>
+              </div>
+              <div style="background:#3fb950;border-radius:10px;width:36px;height:20px;position:relative;flex-shrink:0">
+                <div style="background:#fff;border-radius:50%;width:16px;height:16px;position:absolute;right:2px;top:2px"></div>
+              </div>
+            </div>
+            <!-- Expanded params -->
+            <div style="background:#0d1117;padding:10px 14px 12px 36px;border-top:1px solid #21262d">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <div>
+                  <div style="color:#8b949e;font-size:11px;font-weight:500">Energy threshold</div>
+                  <div style="color:#484f58;font-size:10px">Min energy % to consider a player</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <input type="range" value="50" style="width:70px;accent-color:#3fb950" disabled>
+                  <span style="color:#8b949e;font-size:11px;width:28px">50%</span>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <div style="color:#8b949e;font-size:11px;font-weight:500">Show swap diff</div>
+                  <div style="color:#484f58;font-size:10px">Highlight OVR change after optimize</div>
+                </div>
+                <div style="background:#3fb950;border-radius:10px;width:28px;height:16px;position:relative;flex-shrink:0">
+                  <div style="background:#fff;border-radius:50%;width:12px;height:12px;position:absolute;right:2px;top:2px"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Second feature — collapsed, no params -->
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="color:#484f58;font-size:10px">▶</span>
+              <div>
+                <div style="color:#e6edf3;font-weight:600;margin-bottom:2px">Position OVR</div>
+                <div style="color:#8b949e;font-size:10px">Per-position OVR chips on scouting &amp; tactics</div>
+              </div>
+            </div>
+            <div style="background:#3fb950;border-radius:10px;width:36px;height:20px;position:relative;flex-shrink:0">
+              <div style="background:#fff;border-radius:50%;width:16px;height:16px;position:absolute;right:2px;top:2px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Collapsible rows</h3>
+      <p>Click the chevron to expand params. Cleaner when features have no params yet — no empty space.</p>
+    </div>
+  </div>
+
+</div>

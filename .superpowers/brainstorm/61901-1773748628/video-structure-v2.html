@@ -1,0 +1,75 @@
+<h2>Revised Scene Structure — does this look right?</h2>
+<p class="subtitle">Modified C: single team optimizer first → all teams → position scores → free season CTA</p>
+
+<style>
+.timeline { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.scene { display: flex; align-items: stretch; border-radius: 6px; overflow: hidden; font-size: 12px; }
+.scene-time { background: #21262d; color: #8b949e; padding: 8px 10px; min-width: 58px; text-align: center; font-weight: 700; font-size: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.scene-body { padding: 8px 14px; flex: 1; }
+.scene-title { font-weight: 700; margin-bottom: 2px; }
+.scene-desc { font-size: 11px; color: #8b949e; }
+.c-hook   { background: #161b22; border-left: 3px solid #58a6ff; }
+.c-opt1   { background: #0d2016; border-left: 3px solid #3fb950; }
+.c-all    { background: #0f1f2e; border-left: 3px solid #58a6ff; }
+.c-pos    { background: #1f1a0a; border-left: 3px solid #ffd700; }
+.c-free   { background: #1a0f2e; border-left: 3px solid #bc8cff; }
+.c-cta    { background: #161b22; border-left: 3px solid #3fb950; }
+.bar { height: 10px; border-radius: 4px; margin-bottom: 16px; background: linear-gradient(to right,
+  #58a6ff 0% 10%,
+  #3fb950 10% 33%,
+  #58a6ff 33% 58%,
+  #ffd700 58% 75%,
+  #bc8cff 75% 88%,
+  #3fb950 88% 100%
+); opacity: 0.6; }
+</style>
+
+<div style="margin-bottom: 20px;">
+  <div class="bar"></div>
+  <div class="timeline">
+    <div class="scene c-hook">
+      <div class="scene-time">0–6s</div>
+      <div class="scene-body">
+        <div class="scene-title">⚡ Hook / Title card</div>
+        <div class="scene-desc">"Stop leaving OVR on the table" — dark title card, logo reveal</div>
+      </div>
+    </div>
+    <div class="scene c-opt1">
+      <div class="scene-time">6–22s</div>
+      <div class="scene-body">
+        <div class="scene-title">🤖 Single squad optimizer</div>
+        <div class="scene-desc">Tactics page → click Optimize → lineup updates, OVR jumps, energy-adjusted score shown. Text overlay: "Best XI in one click, energy-aware"</div>
+      </div>
+    </div>
+    <div class="scene c-all">
+      <div class="scene-time">22–40s</div>
+      <div class="scene-body">
+        <div class="scene-title">🏟 All Teams page</div>
+        <div class="scene-desc">Extension icon → all 4 clubs load → expand lineups, see OVR diffs → "⚡ Optimize All Squads". Text overlay: "All your clubs. One page."</div>
+      </div>
+    </div>
+    <div class="scene c-pos">
+      <div class="scene-time">40–50s</div>
+      <div class="scene-body">
+        <div class="scene-title">🎯 Position OVR tooltip</div>
+        <div class="scene-desc">Hover over a player on the scouting/tactics page → tooltip shows OVR at every position. Text overlay: "Know exactly where every player fits"</div>
+      </div>
+    </div>
+    <div class="scene c-free">
+      <div class="scene-time">50–56s</div>
+      <div class="scene-body">
+        <div class="scene-title">🎁 Free for the season callout</div>
+        <div class="scene-desc">Full-screen text moment: "Free for the rest of the 2025/26 season" — bold, centred, purple accent</div>
+      </div>
+    </div>
+    <div class="scene c-cta">
+      <div class="scene-time">56–60s</div>
+      <div class="scene-body">
+        <div class="scene-title">→ Install CTA</div>
+        <div class="scene-desc">Chrome Web Store button + URL. Logo holds on screen.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="font-size:12px; color: #6e7681; margin-top: 8px;">If the timing feels off anywhere, just say which scene needs more or less time.</p>

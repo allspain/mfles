@@ -1,0 +1,7 @@
+{"type":"server-started","port":60712,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:60712","screen_dir":"/Users/rickklein/Development/mfles/.superpowers/brainstorm/61901-1773748628"}
+{"type":"screen-added","file":"/Users/rickklein/Development/mfles/.superpowers/brainstorm/61901-1773748628/video-structure.html"}
+{"type":"screen-added","file":"/Users/rickklein/Development/mfles/.superpowers/brainstorm/61901-1773748628/video-structure-v2.html"}
+{"type":"screen-added","file":"/Users/rickklein/Development/mfles/.superpowers/brainstorm/61901-1773748628/website-layout.html"}
+{"type":"screen-added","file":"/Users/rickklein/Development/mfles/.superpowers/brainstorm/61901-1773748628/waiting.html"}
+{"type":"screen-added","file":"/Users/rickklein/Development/mfles/.superpowers/brainstorm/61901-1773748628/website-design.html"}
+{"type":"server-stopped","reason":"idle timeout"}

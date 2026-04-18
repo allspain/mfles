@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MFL - Club Tactics</title>
+  <link rel="stylesheet" href="/mock.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <img class="logo" src="/logo.png" alt="MFL" onerror="this.style.display='none'">
+  <a href="#" title="Matches">📅</a>
+  <a href="/clubs/7338/tactics" class="active" title="Tactics">⚽</a>
+  <a href="/scouting" title="Scouting">🔭</a>
+  <a href="#" title="Players">👤</a>
+  <a href="#" title="Settings">⚙️</a>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <div class="club-badge"></div>
+    <h1>TACTICS</h1>
+    <span style="color:var(--muted);font-size:12px;">Test Club FC</span>
+    <span class="mock-badge">MOCK SITE</span>
+  </div>
+
+  <div class="tabs">
+    <a href="#" class="active">Overview</a>
+    <a href="#">Team Instructions</a>
+    <a href="#">Set Pieces</a>
+    <a href="#">Match Plans</a>
+  </div>
+
+  <div class="content">
+
+    <!-- Pitch panel -->
+    <div class="pitch-panel">
+      <div class="formation-select">
+        <strong>4-3-3 (att)</strong>
+        <span style="margin-left:auto;color:var(--green);font-size:11px;">CLEAR ×</span>
+      </div>
+      <div class="pitch" id="pitch">
+        <div class="pitch-mid"></div>
+        <div class="pitch-circle"></div>
+        <!-- Player dots positioned in 4-3-3 (% from top/left) -->
+        <div class="player-dot" style="top:90%;left:50%" data-pid="1001"><div class="dot">GK</div><div class="dot-name">Onana</div></div>
+        <div class="player-dot" style="top:72%;left:18%" data-pid="1002"><div class="dot">RB</div><div class="dot-name">Wan-Bissaka</div></div>
+        <div class="player-dot" style="top:72%;left:38%" data-pid="1003"><div class="dot">CB</div><div class="dot-name">Maguire</div></div>
+        <div class="player-dot" style="top:72%;left:62%" data-pid="1004"><div class="dot">CB</div><div class="dot-name">Varane</div></div>
+        <div class="player-dot" style="top:72%;left:82%" data-pid="1005"><div class="dot">LB</div><div class="dot-name">Shaw</div></div>
+        <div class="player-dot" style="top:50%;left:25%" data-pid="1006"><div class="dot">CM</div><div class="dot-name">Casemiro</div></div>
+        <div class="player-dot" style="top:50%;left:50%" data-pid="1007"><div class="dot">CM</div><div class="dot-name">McTominay</div></div>
+        <div class="player-dot" style="top:50%;left:75%" data-pid="1008"><div class="dot">CAM</div><div class="dot-name">Fernandes</div></div>
+        <div class="player-dot" style="top:22%;left:18%" data-pid="1009"><div class="dot">RW</div><div class="dot-name">Sancho</div></div>
+        <div class="player-dot" style="top:15%;left:50%" data-pid="1011"><div class="dot">ST</div><div class="dot-name">Højlund</div></div>
+        <div class="player-dot" style="top:22%;left:82%" data-pid="1010"><div class="dot">LW</div><div class="dot-name">Rashford</div></div>
+      </div>
+      <div style="margin-top:12px;font-size:11px;color:var(--muted);text-align:center;">Hover a player row to see position OVR tooltip</div>
+    </div>
+
+    <!-- Player table -->
+    <div class="table-panel">
+      <table class="player-table" id="playerTable">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Positions</th>
+            <th class="sortable sorted">OVR ▼</th>
+            <th>Energy</th>
+            <th>Age</th>
+          </tr>
+        </thead>
+        <tbody id="playerBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- Tooltip container (dynamically inserted by JS to trigger extension) -->
+
+<script>
+const PLAYERS = [
+  { id: 1001, energy: 9700, ovr: 79, age: 27, role: 'GK',  metadata: { firstName: 'André',    lastName: 'Onana',        positions: ['GK'],          pace: 62, shooting: 20, passing: 58, dribbling: 35, defense: 18, physical: 78, goalkeeping: 86 } },
+  { id: 1002, energy: 9800, ovr: 73, age: 26, role: 'RB',  metadata: { firstName: 'Aaron',    lastName: 'Wan-Bissaka',  positions: ['RB', 'RWB'],   pace: 82, shooting: 42, passing: 61, dribbling: 77, defense: 78, physical: 72, goalkeeping:  9 } },
+  { id: 1003, energy: 9200, ovr: 76, age: 31, role: 'CB',  metadata: { firstName: 'Harry',    lastName: 'Maguire',      positions: ['CB'],          pace: 67, shooting: 45, passing: 63, dribbling: 52, defense: 82, physical: 85, goalkeeping: 12 } },
+  { id: 1004, energy: 8400, ovr: 82, age: 30, role: 'CB',  metadata: { firstName: 'Raphaël',  lastName: 'Varane',       positions: ['CB'],          pace: 78, shooting: 44, passing: 68, dribbling: 58, defense: 88, physical: 83, goalkeeping: 13 } },
+  { id: 1005, energy: 7500, ovr: 72, age: 28, role: 'LB',  metadata: { firstName: 'Luke',     lastName: 'Shaw',         positions: ['LB', 'LWB'],   pace: 79, shooting: 58, passing: 72, dribbling: 74, defense: 75, physical: 73, goalkeeping:  8 } },
+  { id: 1006, energy: 9300, ovr: 82, age: 31, role: 'CDM', metadata: { firstName: 'Casemiro', lastName: '',             positions: ['CDM', 'CM'],   pace: 64, shooting: 72, passing: 76, dribbling: 67, defense: 88, physical: 86, goalkeeping: 12 } },
+  { id: 1007, energy: 9100, ovr: 75, age: 27, role: 'CM',  metadata: { firstName: 'Scott',    lastName: 'McTominay',    positions: ['CM', 'CDM'],   pace: 68, shooting: 71, passing: 73, dribbling: 66, defense: 76, physical: 82, goalkeeping: 11 } },
+  { id: 1008, energy: 8700, ovr: 84, age: 29, role: 'CAM', metadata: { firstName: 'Bruno',    lastName: 'Fernandes',    positions: ['CAM', 'CM'],   pace: 73, shooting: 81, passing: 88, dribbling: 84, defense: 56, physical: 72, goalkeeping: 10 } },
+  { id: 1009, energy: 6800, ovr: 80, age: 23, role: 'RW',  metadata: { firstName: 'Jadon',    lastName: 'Sancho',       positions: ['RW', 'LW'],    pace: 87, shooting: 78, passing: 77, dribbling: 91, defense: 38, physical: 64, goalkeeping:  8 } },
+  { id: 1010, energy: 9500, ovr: 83, age: 26, role: 'LW',  metadata: { firstName: 'Marcus',   lastName: 'Rashford',     positions: ['LW', 'ST'],    pace: 89, shooting: 82, passing: 75, dribbling: 88, defense: 35, physical: 72, goalkeeping:  8 } },
+  { id: 1011, energy: 9400, ovr: 78, age: 21, role: 'ST',  metadata: { firstName: 'Rasmus',   lastName: 'Højlund',      positions: ['ST', 'CF'],    pace: 84, shooting: 79, passing: 65, dribbling: 78, defense: 28, physical: 75, goalkeeping:  9 } },
+  // bench
+  { id: 1012, energy: 7200, ovr: 77, age: 25, role: 'CM',  metadata: { firstName: 'Mason',    lastName: 'Mount',        positions: ['CM', 'CAM', 'LW'], pace: 76, shooting: 77, passing: 81, dribbling: 83, defense: 58, physical: 71, goalkeeping: 9 } },
+  { id: 1013, energy: 9600, ovr: 76, age: 19, role: 'LW',  metadata: { firstName: 'Alejandro',lastName: 'Garnacho',     positions: ['LW', 'RW'],    pace: 88, shooting: 74, passing: 69, dribbling: 86, defense: 32, physical: 65, goalkeeping:  7 } },
+  { id: 1014, energy: 5200, ovr: 74, age: 23, role: 'RW',  metadata: { firstName: 'Antony',   lastName: '',             positions: ['RW', 'LW'],    pace: 85, shooting: 75, passing: 68, dribbling: 87, defense: 35, physical: 65, goalkeeping:  8 } },
+  { id: 1015, energy: 9800, ovr: 68, age: 33, role: 'GK',  metadata: { firstName: 'Tom',      lastName: 'Heaton',       positions: ['GK'],          pace: 45, shooting: 18, passing: 48, dribbling: 28, defense: 15, physical: 72, goalkeeping: 76 } },
+];
+
+const STARTERS = [1001,1002,1003,1004,1005,1006,1007,1008,1009,1010,1011];
+
+function ovrClass(v) { return v >= 80 ? 'ovr-high' : v >= 70 ? 'ovr-mid' : 'ovr-low'; }
+function energyClass(v) { return v >= 85 ? 'energy-high' : v >= 60 ? 'energy-mid' : 'energy-low'; }
+
+function buildTable() {
+  const body = document.getElementById('playerBody');
+  const starters = PLAYERS.filter(p => STARTERS.includes(p.id));
+  const bench = PLAYERS.filter(p => !STARTERS.includes(p.id));
+
+  function makeRow(p, isBench) {
+    const energy = Math.round(p.energy / 100);
+    const name = [p.metadata.firstName, p.metadata.lastName].filter(Boolean).join(' ');
+    const posStr = p.metadata.positions.join(', ');
+    const tr = document.createElement('tr');
+    tr.className = isBench ? 'bench' : 'starter';
+    tr.dataset.pid = p.id;
+    tr.innerHTML = `
+      <td style="color:var(--muted);width:28px">⠿</td>
+      <td><span class="player-name">${name}</span><br><span class="player-pos-text">${p.role}</span></td>
+      <td><span class="inline cursor-help">${posStr}</span></td>
+      <td class="ovr-badge ${ovrClass(p.ovr)}">${p.ovr}</td>
+      <td class="${energyClass(energy)}">${energy}%</td>
+      <td style="color:var(--muted)">${p.age}</td>
+    `;
+    // Set data-mfl-player directly on the .inline.cursor-help span
+    const span = tr.querySelector('.inline.cursor-help');
+    span.dataset.mflPlayer = JSON.stringify(p);
+    return tr;
+  }
+
+  // Section header
+  const sh = document.createElement('tr');
+  sh.className = 'section-header';
+  sh.innerHTML = '<td colspan="6">Starting XI</td>';
+  body.appendChild(sh);
+  starters.forEach(p => body.appendChild(makeRow(p, false)));
+
+  const bh = document.createElement('tr');
+  bh.className = 'section-header';
+  bh.innerHTML = '<td colspan="6">Bench</td>';
+  body.appendChild(bh);
+  bench.forEach(p => body.appendChild(makeRow(p, true)));
+}
+
+// ── Tooltip simulator ─────────────────────────────────────────────
+// Simulates the react-tiny-popover-container that the extension augments
+const PITCH_POSITIONS = [
+  { pos: 'GK',  x: 8,  y: 34 },
+  { pos: 'RB',  x: 20, y: 55 }, { pos: 'CB',  x: 20, y: 34 }, { pos: 'LB',  x: 20, y: 13 },
+  { pos: 'RWB', x: 37, y: 55 }, { pos: 'LWB', x: 37, y: 13 },
+  { pos: 'CDM', x: 43, y: 34 },
+  { pos: 'RM',  x: 62, y: 55 }, { pos: 'CM',  x: 62, y: 34 }, { pos: 'LM',  x: 62, y: 13 },
+  { pos: 'CAM', x: 75, y: 34 },
+  { pos: 'RW',  x: 84, y: 55 }, { pos: 'LW',  x: 84, y: 13 },
+  { pos: 'CF',  x: 86, y: 34 },
+  { pos: 'ST',  x: 97, y: 34 },
+];
+
+const POS_COLORS = { GK:'#f59e0b', CB:'#3b82f6', RB:'#3b82f6', LB:'#3b82f6', RWB:'#3b82f6', LWB:'#3b82f6',
+  CDM:'#8b5cf6', CM:'#8b5cf6', CAM:'#8b5cf6', RM:'#8b5cf6', LM:'#8b5cf6',
+  RW:'#22c55e', LW:'#22c55e', CF:'#ef4444', ST:'#ef4444' };
+
+function makePitchSvg(player) {
+  const playerPos = new Set(player.metadata.positions);
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '-5 0 115 68');
+  svg.setAttribute('width', '220');
+  svg.setAttribute('height', '136');
+  // Pitch background
+  const bg = document.createElementNS(ns, 'rect');
+  bg.setAttribute('x', '-5'); bg.setAttribute('y', '0');
+  bg.setAttribute('width', '115'); bg.setAttribute('height', '68');
+  bg.setAttribute('fill', '#1a4731'); svg.appendChild(bg);
+  // Mid line
+  const mid = document.createElementNS(ns, 'line');
+  mid.setAttribute('x1','52'); mid.setAttribute('y1','0');
+  mid.setAttribute('x2','52'); mid.setAttribute('y2','68');
+  mid.setAttribute('stroke','rgba(255,255,255,0.1)'); mid.setAttribute('stroke-width','0.5');
+  svg.appendChild(mid);
+
+  for (const { pos, x, y } of PITCH_POSITIONS) {
+    const g = document.createElementNS(ns, 'g');
+    g.setAttribute('transform', `translate(${x}, ${y})`);
+    if (playerPos.has(pos)) {
+      // Colored position (2 circles + label text)
+      const c1 = document.createElementNS(ns, 'circle');
+      c1.setAttribute('r', '5.8'); c1.setAttribute('fill', POS_COLORS[pos] || '#6b7280');
+      const c2 = document.createElementNS(ns, 'circle');
+      c2.setAttribute('r', '5'); c2.setAttribute('fill', POS_COLORS[pos] || '#6b7280');
+      const t = document.createElementNS(ns, 'text');
+      t.setAttribute('text-anchor', 'middle'); t.setAttribute('dominant-baseline', 'middle');
+      t.setAttribute('font-size', '2.8'); t.setAttribute('font-weight', '700');
+      t.setAttribute('fill', '#fff'); t.setAttribute('y', '-1.5');
+      t.textContent = pos;
+      g.appendChild(c1); g.appendChild(c2); g.appendChild(t);
+    } else {
+      // Grey circle (1 circle, no text — extension will add OVR)
+      const c = document.createElementNS(ns, 'circle');
+      c.setAttribute('r', '4.5'); c.setAttribute('fill', '#374151');
+      g.appendChild(c);
+    }
+    svg.appendChild(g);
+  }
+  return svg;
+}
+
+let activePopover = null;
+
+function showTooltip(player, x, y) {
+  removeTooltip();
+  document.body.dataset.mflHoveredPlayer = JSON.stringify(player);
+  const div = document.createElement('div');
+  div.className = 'react-tiny-popover-container';
+  div.style.left = (x + 16) + 'px';
+  div.style.top = (y - 68) + 'px';
+  div.appendChild(makePitchSvg(player));
+  document.body.appendChild(div);
+  activePopover = div;
+}
+
+function removeTooltip() {
+  if (activePopover) { activePopover.remove(); activePopover = null; }
+}
+
+function attachHoverListeners() {
+  document.querySelectorAll('tr[data-pid]').forEach(tr => {
+    const pid = parseInt(tr.dataset.pid);
+    const player = PLAYERS.find(p => p.id === pid);
+    if (!player) return;
+    tr.addEventListener('mouseenter', e => showTooltip(player, e.clientX, e.clientY));
+    tr.addEventListener('mousemove', e => {
+      if (activePopover) {
+        activePopover.style.left = (e.clientX + 16) + 'px';
+        activePopover.style.top = (e.clientY - 68) + 'px';
+      }
+    });
+    tr.addEventListener('mouseleave', removeTooltip);
+  });
+}
+
+buildTable();
+attachHoverListeners();
+
+// ── Demo optimizer UI refresh ──────────────────────────────────────
+// The extension dispatches mfl_refresh_ui after applying swaps.
+// On the demo page, apply the optimizer's result visually:
+//   Rashford (1010) → ST slot, Garnacho (1013) → LW slot, Højlund (1011) → bench
+window.addEventListener('mfl_refresh_ui', () => {
+  // Update roles to match the new assignment
+  const byId = Object.fromEntries(PLAYERS.map(p => [p.id, p]));
+  byId[1010].role = 'ST';   // Rashford moves to ST
+  byId[1013].role = 'LW';   // Garnacho comes in at LW
+  byId[1011].role = 'ST';   // Højlund retains his natural role on bench
+
+  // New starting XI
+  STARTERS.length = 0;
+  STARTERS.push(1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010, 1013);
+
+  // Rebuild table and re-attach listeners
+  const body = document.getElementById('playerBody');
+  body.innerHTML = '';
+  buildTable();
+  attachHoverListeners();
+
+  // Update pitch dots (swap name/pid for ST and LW)
+  document.querySelectorAll('.player-dot').forEach(dot => {
+    const pid = parseInt(dot.dataset.pid);
+    if (pid === 1011) {
+      dot.dataset.pid = '1010';
+      dot.querySelector('.dot-name').textContent = 'Rashford';
+    } else if (pid === 1010) {
+      dot.dataset.pid = '1013';
+      dot.querySelector('.dot-name').textContent = 'Garnacho';
+    }
+  });
+});
+</script>
+</body>
+</html>

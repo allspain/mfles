@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — MFL Enhancement Suite</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 680px; margin: 48px auto; padding: 0 24px; color: #1f2937; line-height: 1.6; }
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.1rem; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <h1>Privacy Policy — MFL Enhancement Suite</h1>
+  <p><em>Last updated: March 2026</em></p>
+
+  <h2>What data is collected</h2>
+  <p>The extension captures your playmfl.com authentication token from outgoing API requests made by the app. This token is used solely to make authorized API calls on your behalf (fetching your club's tactics and player data to run the lineup optimizer).</p>
+
+  <h2>Where data is stored</h2>
+  <p>The auth token is stored in <code>chrome.storage.local</code> — local to your browser, on your device only. It is never transmitted to any server other than <code>playmfl.com</code>.</p>
+
+  <h2>What data is sent externally</h2>
+  <p>The extension communicates exclusively with <code>https://app.playmfl.com</code> and <code>https://api.playmfl.com</code>. No data is sent to any third-party server. The extension has no analytics, tracking, or telemetry.</p>
+
+  <h2>Data retention</h2>
+  <p>The token persists in local storage until you uninstall the extension or clear browser storage. It is refreshed automatically on each playmfl.com session.</p>
+
+  <h2>Contact</h2>
+  <p>Questions? Open an issue on the <a href="https://github.com/allspain/mfles">GitHub repository</a>.</p>
+</body>
+</html>

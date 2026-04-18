@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MFL - Scouting</title>
+  <link rel="stylesheet" href="/mock.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <img class="logo" src="/logo.png" alt="MFL" onerror="this.style.display='none'">
+  <a href="#" title="Matches">📅</a>
+  <a href="/clubs/7338/tactics" title="Tactics">⚽</a>
+  <a href="/scouting" class="active" title="Scouting">🔭</a>
+  <a href="#" title="Players">👤</a>
+  <a href="#" title="Settings">⚙️</a>
+</nav>
+
+<div class="main">
+  <div class="scouting-header topbar">
+    <h1>SCOUTING</h1>
+    <span class="mock-badge">MOCK SITE</span>
+  </div>
+
+  <div class="filter-bar">
+    <span class="filter-chip active">All</span>
+    <span class="filter-chip">GK</span>
+    <span class="filter-chip">DEF</span>
+    <span class="filter-chip">MID</span>
+    <span class="filter-chip">FWD</span>
+  </div>
+
+  <div class="scouting-content">
+    <table class="player-table" id="scoutTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Positions</th>
+          <th class="sortable sorted">OVR ▼</th>
+          <th>Energy</th>
+          <th>Pace</th>
+          <th>Shooting</th>
+          <th>Passing</th>
+          <th>Dribbling</th>
+          <th>Defense</th>
+          <th>Physical</th>
+          <th>Age</th>
+        </tr>
+      </thead>
+      <tbody id="scoutBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const PLAYERS = [
+  { id: 1001, energy: 9700, ovr: 79, age: 27, metadata: { firstName: 'André',     lastName: 'Onana',        positions: ['GK'],              pace: 62, shooting: 20, passing: 58, dribbling: 35, defense: 18, physical: 78, goalkeeping: 86 } },
+  { id: 1002, energy: 9800, ovr: 73, age: 26, metadata: { firstName: 'Aaron',     lastName: 'Wan-Bissaka',  positions: ['RB', 'RWB'],       pace: 82, shooting: 42, passing: 61, dribbling: 77, defense: 78, physical: 72, goalkeeping:  9 } },
+  { id: 1003, energy: 9200, ovr: 76, age: 31, metadata: { firstName: 'Harry',     lastName: 'Maguire',      positions: ['CB'],               pace: 67, shooting: 45, passing: 63, dribbling: 52, defense: 82, physical: 85, goalkeeping: 12 } },
+  { id: 1004, energy: 8400, ovr: 82, age: 30, metadata: { firstName: 'Raphaël',   lastName: 'Varane',       positions: ['CB'],               pace: 78, shooting: 44, passing: 68, dribbling: 58, defense: 88, physical: 83, goalkeeping: 13 } },
+  { id: 1005, energy: 7500, ovr: 72, age: 28, metadata: { firstName: 'Luke',      lastName: 'Shaw',         positions: ['LB', 'LWB'],       pace: 79, shooting: 58, passing: 72, dribbling: 74, defense: 75, physical: 73, goalkeeping:  8 } },
+  { id: 1006, energy: 9300, ovr: 82, age: 31, metadata: { firstName: 'Casemiro',  lastName: '',             positions: ['CDM', 'CM'],       pace: 64, shooting: 72, passing: 76, dribbling: 67, defense: 88, physical: 86, goalkeeping: 12 } },
+  { id: 1007, energy: 9100, ovr: 75, age: 27, metadata: { firstName: 'Scott',     lastName: 'McTominay',    positions: ['CM', 'CDM'],       pace: 68, shooting: 71, passing: 73, dribbling: 66, defense: 76, physical: 82, goalkeeping: 11 } },
+  { id: 1008, energy: 8700, ovr: 84, age: 29, metadata: { firstName: 'Bruno',     lastName: 'Fernandes',    positions: ['CAM', 'CM'],       pace: 73, shooting: 81, passing: 88, dribbling: 84, defense: 56, physical: 72, goalkeeping: 10 } },
+  { id: 1009, energy: 6800, ovr: 80, age: 23, metadata: { firstName: 'Jadon',     lastName: 'Sancho',       positions: ['RW', 'LW'],        pace: 87, shooting: 78, passing: 77, dribbling: 91, defense: 38, physical: 64, goalkeeping:  8 } },
+  { id: 1010, energy: 9500, ovr: 83, age: 26, metadata: { firstName: 'Marcus',    lastName: 'Rashford',     positions: ['LW', 'ST'],        pace: 89, shooting: 82, passing: 75, dribbling: 88, defense: 35, physical: 72, goalkeeping:  8 } },
+  { id: 1011, energy: 9400, ovr: 78, age: 21, metadata: { firstName: 'Rasmus',    lastName: 'Højlund',      positions: ['ST', 'CF'],        pace: 84, shooting: 79, passing: 65, dribbling: 78, defense: 28, physical: 75, goalkeeping:  9 } },
+  { id: 1012, energy: 7200, ovr: 77, age: 25, metadata: { firstName: 'Mason',     lastName: 'Mount',        positions: ['CM', 'CAM', 'LW'], pace: 76, shooting: 77, passing: 81, dribbling: 83, defense: 58, physical: 71, goalkeeping:  9 } },
+  { id: 1013, energy: 9600, ovr: 76, age: 19, metadata: { firstName: 'Alejandro', lastName: 'Garnacho',     positions: ['LW', 'RW'],        pace: 88, shooting: 74, passing: 69, dribbling: 86, defense: 32, physical: 65, goalkeeping:  7 } },
+  { id: 1014, energy: 5200, ovr: 74, age: 23, metadata: { firstName: 'Antony',    lastName: '',             positions: ['RW', 'LW'],        pace: 85, shooting: 75, passing: 68, dribbling: 87, defense: 35, physical: 65, goalkeeping:  8 } },
+  { id: 1015, energy: 9800, ovr: 68, age: 33, metadata: { firstName: 'Tom',       lastName: 'Heaton',       positions: ['GK'],               pace: 45, shooting: 18, passing: 48, dribbling: 28, defense: 15, physical: 72, goalkeeping: 76 } },
+];
+
+function ovrClass(v) { return v >= 80 ? 'ovr-high' : v >= 70 ? 'ovr-mid' : 'ovr-low'; }
+function energyClass(v) { return v >= 85 ? 'energy-high' : v >= 60 ? 'energy-mid' : 'energy-low'; }
+
+function buildTable() {
+  const body = document.getElementById('scoutBody');
+  PLAYERS.sort((a, b) => b.ovr - a.ovr).forEach(p => {
+    const energy = Math.round(p.energy / 100);
+    const name = [p.metadata.firstName, p.metadata.lastName].filter(Boolean).join(' ');
+    const posStr = p.metadata.positions.join(', ');
+    const tr = document.createElement('tr');
+    tr.dataset.pid = p.id;
+    tr.innerHTML = `
+      <td class="player-name">${name}</td>
+      <td><span class="inline cursor-help">${posStr}</span></td>
+      <td class="ovr-badge ${ovrClass(p.ovr)}">${p.ovr}</td>
+      <td class="${energyClass(energy)}">${energy}%</td>
+      <td style="color:var(--muted)">${p.metadata.pace}</td>
+      <td style="color:var(--muted)">${p.metadata.shooting}</td>
+      <td style="color:var(--muted)">${p.metadata.passing}</td>
+      <td style="color:var(--muted)">${p.metadata.dribbling}</td>
+      <td style="color:var(--muted)">${p.metadata.defense}</td>
+      <td style="color:var(--muted)">${p.metadata.physical}</td>
+      <td style="color:var(--muted)">${p.age}</td>
+    `;
+    const span = tr.querySelector('.inline.cursor-help');
+    span.dataset.mflPlayer = JSON.stringify(p);
+    body.appendChild(tr);
+  });
+}
+
+buildTable();
+
+// Tooltip simulator (same as tactics page)
+const PITCH_POSITIONS = [
+  { pos: 'GK',  x: 8,  y: 34 },
+  { pos: 'RB',  x: 20, y: 55 }, { pos: 'CB',  x: 20, y: 34 }, { pos: 'LB',  x: 20, y: 13 },
+  { pos: 'RWB', x: 37, y: 55 }, { pos: 'LWB', x: 37, y: 13 },
+  { pos: 'CDM', x: 43, y: 34 },
+  { pos: 'RM',  x: 62, y: 55 }, { pos: 'CM',  x: 62, y: 34 }, { pos: 'LM',  x: 62, y: 13 },
+  { pos: 'CAM', x: 75, y: 34 },
+  { pos: 'RW',  x: 84, y: 55 }, { pos: 'LW',  x: 84, y: 13 },
+  { pos: 'CF',  x: 86, y: 34 },
+  { pos: 'ST',  x: 97, y: 34 },
+];
+const POS_COLORS = { GK:'#f59e0b', CB:'#3b82f6', RB:'#3b82f6', LB:'#3b82f6', RWB:'#3b82f6', LWB:'#3b82f6',
+  CDM:'#8b5cf6', CM:'#8b5cf6', CAM:'#8b5cf6', RM:'#8b5cf6', LM:'#8b5cf6',
+  RW:'#22c55e', LW:'#22c55e', CF:'#ef4444', ST:'#ef4444' };
+
+function makePitchSvg(player) {
+  const playerPos = new Set(player.metadata.positions);
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '-5 0 115 68');
+  svg.setAttribute('width', '220'); svg.setAttribute('height', '136');
+  const bg = document.createElementNS(ns, 'rect');
+  bg.setAttribute('x','-5'); bg.setAttribute('y','0'); bg.setAttribute('width','115'); bg.setAttribute('height','68'); bg.setAttribute('fill','#1a4731');
+  svg.appendChild(bg);
+  for (const { pos, x, y } of PITCH_POSITIONS) {
+    const g = document.createElementNS(ns, 'g');
+    g.setAttribute('transform', `translate(${x}, ${y})`);
+    if (playerPos.has(pos)) {
+      const c1 = document.createElementNS(ns, 'circle'); c1.setAttribute('r','5.8'); c1.setAttribute('fill', POS_COLORS[pos]||'#6b7280');
+      const c2 = document.createElementNS(ns, 'circle'); c2.setAttribute('r','5'); c2.setAttribute('fill', POS_COLORS[pos]||'#6b7280');
+      const t = document.createElementNS(ns, 'text'); t.setAttribute('text-anchor','middle'); t.setAttribute('dominant-baseline','middle'); t.setAttribute('font-size','2.8'); t.setAttribute('font-weight','700'); t.setAttribute('fill','#fff'); t.setAttribute('y','-1.5'); t.textContent = pos;
+      g.appendChild(c1); g.appendChild(c2); g.appendChild(t);
+    } else {
+      const c = document.createElementNS(ns, 'circle'); c.setAttribute('r','4.5'); c.setAttribute('fill','#374151');
+      g.appendChild(c);
+    }
+    svg.appendChild(g);
+  }
+  return svg;
+}
+
+let activePopover = null;
+function showTooltip(player, x, y) {
+  removeTooltip();
+  document.body.dataset.mflHoveredPlayer = JSON.stringify(player);
+  const div = document.createElement('div');
+  div.className = 'react-tiny-popover-container';
+  div.style.left = (x + 16) + 'px';
+  div.style.top = (y - 68) + 'px';
+  div.appendChild(makePitchSvg(player));
+  document.body.appendChild(div);
+  activePopover = div;
+}
+function removeTooltip() { if (activePopover) { activePopover.remove(); activePopover = null; } }
+
+document.querySelectorAll('tr[data-pid]').forEach(tr => {
+  const pid = parseInt(tr.dataset.pid);
+  const player = PLAYERS.find(p => p.id === pid);
+  if (!player) return;
+  tr.addEventListener('mouseenter', e => showTooltip(player, e.clientX, e.clientY));
+  tr.addEventListener('mousemove', e => { if (activePopover) { activePopover.style.left=(e.clientX+16)+'px'; activePopover.style.top=(e.clientY-68)+'px'; } });
+  tr.addEventListener('mouseleave', removeTooltip);
+});
+</script>
+</body>
+</html>
