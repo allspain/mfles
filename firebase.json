@@ -1,0 +1,10 @@
+{
+  "hosting": {
+    "site": "mfl-es",
+    "public": "website",
+    "ignore": [
+      "firebase.json",
+      "**/.*"
+    ]
+  }
+}
